@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Modular Channel Rack - V2.0 (160 Modules | 8 Categories)</title>
+<style>
+  :root {
+    --bg-dark: #0e1116;
+    --bg-panel: #161a20;
+    --bg-sidebar: #13171d;
+    --bg-card: #1c2129;
+    --bg-card-top: #232933;
+    --border-color: #2c333f;
+    --border-light: #3b4454;
+    --cyan: #22d3ee;
+    --cyan-dim: rgba(34, 211, 238, 0.18);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245, 158, 11, 0.18);
+    --purple: #a855f7;
+    --emerald: #10b981;
+    --red: #ef4444;
+    --text-main: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+  }
+
+  body {
+    background-color: #090b0e;
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  /* Custom Scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #101318;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2e3643;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
+
+  /* Main Window */
+  .rack-window {
+    width: 100%;
+    max-width: 1420px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top Header */
+  .top-header {
+    height: 48px;
+    background: #1b2028;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+  }
+
+  .brand-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+  }
+
+  .brand span {
+    color: var(--cyan);
+    font-weight: 500;
+  }
+
+  .preset-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #111419;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 11px;
+  }
+
+  .preset-box label {
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .preset-box select {
+    background: transparent;
+    border: none;
+    color: var(--cyan);
+    font-weight: 700;
+    font-size: 11px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .preset-box select option {
+    background: #161a20;
+    color: var(--text-main);
+  }
+
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-pill {
+    background: #232933;
+    border: 1px solid var(--border-light);
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-pill:hover {
+    background: #2d3542;
+    color: var(--text-main);
+  }
+
+  .btn-pill.active-amber {
+    background: var(--amber-dim);
+    border-color: var(--amber);
+    color: var(--amber);
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.25);
+  }
+
+  .cpu-badge {
+    background: #111419;
+    border: 1px solid var(--border-color);
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-family: monospace;
+    color: var(--text-main);
+  }
+
+  .cpu-badge span {
+    color: var(--cyan);
+    font-weight: bold;
+  }
+
+  /* 16-Slot Mini-Map */
+  .minimap-bar {
+    background: #12161c;
+    border-bottom: 1px solid var(--border-color);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .minimap-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .minimap-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    gap: 6px;
+  }
+
+  .slot-pip {
+    height: 24px;
+    border-radius: 4px;
+    background: #1a1f27;
+    border: 1px solid #29313d;
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .slot-pip:hover {
+    border-color: var(--text-muted);
+    color: var(--text-main);
+  }
+
+  .slot-pip.occupied-cyan {
+    background: var(--cyan-dim);
+    border-color: rgba(34, 211, 238, 0.75);
+    color: var(--cyan);
+  }
+
+  .slot-pip.occupied-amber {
+    background: var(--amber-dim);
+    border-color: rgba(245, 158, 11, 0.75);
+    color: var(--amber);
+  }
+
+  /* Main Body Layout */
+  .workspace {
+    display: flex;
+    height: 550px;
+  }
+
+  /* Left Sidebar */
+  .sidebar {
+    width: 280px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .library-section {
+    flex: 1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .library-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .library-header h2 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-main);
+  }
+
+  .library-count {
+    font-size: 10px;
+    color: var(--cyan);
+    font-weight: 600;
+  }
+
+  .search-input-wrap {
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  .search-input-wrap input {
+    width: 100%;
+    background: #0c0f13;
+    border: 1px solid #2a313c;
+    border-radius: 5px;
+    padding: 6px 10px 6px 28px;
+    color: var(--text-main);
+    font-size: 12px;
+    outline: none;
+  }
+
+  .search-input-wrap input:focus {
+    border-color: var(--cyan);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 9px;
+    top: 7px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+
+  .filter-btn {
+    flex: 1;
+    background: #1b212a;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+
+  .filter-btn:hover {
+    color: var(--text-main);
+  }
+
+  .filter-btn.active {
+    background: var(--cyan-dim);
+    border-color: rgba(34, 211, 238, 0.5);
+    color: var(--cyan);
+  }
+
+  .filter-btn.fav-btn.active {
+    background: var(--amber-dim);
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+
+  /* Category Accordion Tree */
+  .tree-container {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .cat-group {
+    margin-bottom: 6px;
+    border: 1px solid #222832;
+    border-radius: 6px;
+    background: #171c24;
+    overflow: hidden;
+  }
+
+  .cat-header {
+    padding: 7px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    background: #1b2029;
+    transition: background 0.15s;
+  }
+
+  .cat-header:hover {
+    background: #222935;
+  }
+
+  .cat-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+  }
+
+  .cat-arrow {
+    font-size: 9px;
+    color: var(--text-dim);
+    transition: transform 0.15s;
+  }
+
+  .cat-group.open .cat-arrow {
+    transform: rotate(90deg);
+    color: var(--cyan);
+  }
+
+  .cat-badge {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+
+  .cat-items {
+    display: none;
+    padding: 4px;
+    background: #13171e;
+    border-top: 1px solid #222832;
+  }
+
+  .cat-group.open .cat-items {
+    display: block;
+  }
+
+  .module-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+
+  .module-item:hover {
+    background: #212834;
+    color: var(--cyan);
+  }
+
+  .module-item-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .mod-num {
+    color: var(--text-dim);
+    font-size: 10px;
+    font-family: monospace;
+    width: 18px;
+  }
+
+  .star-toggle {
+    background: none;
+    border: none;
+    color: #3e4859;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+  }
+
+  .star-toggle:hover,
+  .star-toggle.starred {
+    color: var(--amber);
+  }
+
+  /* Macro Controls Footer in Sidebar */
+  .macro-section {
+    padding: 10px 12px;
+    background: #101419;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .macro-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .macro-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  /* Center Scrollable Rack Viewport */
+  .rack-viewport {
+    flex: 1;
+    background: #0f1217;
+    padding: 12px;
+    overflow-x: auto;
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  /* Empty Slot */
+  .empty-slot {
+    width: 190px;
+    flex-shrink: 0;
+    border: 2px dashed #252c37;
+    border-radius: 8px;
+    background: rgba(22, 27, 34, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .empty-slot:hover {
+    border-color: rgba(34, 211, 238, 0.5);
+    background: rgba(34, 211, 238, 0.04);
+  }
+
+  .empty-slot-num {
+    font-size: 10px;
+    font-family: monospace;
+    color: var(--text-dim);
+  }
+
+  .empty-plus {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #1b212a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-slot:hover .empty-plus {
+    background: var(--cyan-dim);
+    color: var(--cyan);
+  }
+
+  .empty-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+  }
+
+  /* Active Module Card */
+  .module-card {
+    width: 210px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #1f252f 0%, #161a21 100%);
+    border: 1px solid #313a48;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    transition: opacity 0.2s, border-color 0.2s;
+  }
+
+  .module-card.bypassed {
+    opacity: 0.55;
+    border-color: #252b36;
+  }
+
+  .mod-header {
+    padding: 10px;
+    border-bottom: 1px solid #282f3b;
+  }
+
+  .mod-actions {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .mod-btn {
+    flex: 1;
+    padding: 3px 0;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    background: #252c37;
+    border: 1px solid #374150;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .mod-btn.bypass-on {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: var(--red);
+    color: #fca5a5;
+  }
+
+  .mod-btn.solo-on {
+    background: var(--cyan);
+    border-color: var(--cyan);
+    color: #081018;
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.4);
+  }
+
+  .mod-remove {
+    width: 22px;
+    border-radius: 4px;
+    background: #252c37;
+    border: 1px solid #374150;
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .mod-remove:hover {
+    background: rgba(239, 68, 68, 0.25);
+    color: #fca5a5;
+  }
+
+  .mod-title {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #f1f5f9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mod-cat-tag {
+    text-align: center;
+    font-size: 9px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Module Center Body */
+  .mod-body {
+    flex: 1;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .visualizer-box {
+    width: 100%;
+    height: 64px;
+    background: #0f1217;
+    border: 1px solid #282f3b;
+    border-radius: 5px;
+    padding: 4px;
+  }
+
+  .knob-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    width: 100%;
+    justify-items: center;
+  }
+
+  .knob-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+    justify-items: center;
+  }
+
+  /* Module Footer Strip */
+  .mod-footer {
+    background: #13171d;
+    border-top: 1px solid #282f3b;
+    padding: 8px;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .footer-label {
+    text-align: center;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .footer-knobs {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .footer-toggles {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .mini-toggle {
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    background: #1c222b;
+    border: 1px solid #2e3643;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .mini-toggle.active-cyan {
+    background: var(--cyan-dim);
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .mini-toggle.active-amber {
+    background: var(--amber-dim);
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+
+  /* Rotary Knob Component */
+  .knob-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .knob-control {
+    position: relative;
+    cursor: ns-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .knob-cap {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #2d3540 0%, #171b22 100%);
+    border: 1px solid #3f4856;
+    display: flex;
+    justify-content: center;
+    padding-top: 4px;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  }
+
+  .knob-pointer {
+    width: 2px;
+    height: 7px;
+    border-radius: 2px;
+  }
+
+  .knob-label {
+    margin-top: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  /* Master Meter Right Bar */
+  .master-meter-bar {
+    width: 64px;
+    background: var(--bg-sidebar);
+    border-left: 1px solid var(--border-color);
+    padding: 10px 6px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .meter-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+  }
+
+  .meter-track {
+    flex: 1;
+    width: 11px;
+    background: #0a0d11;
+    border: 1px solid #262d38;
+    border-radius: 2px;
+    padding: 2px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 2px;
+  }
+
+  .meter-led {
+    width: 100%;
+    flex: 1;
+    border-radius: 1px;
+    background: #1b212b;
+  }
+
+  .meter-led.green { background: #10b981; }
+  .meter-led.amber { background: #f59e0b; }
+  .meter-led.red { background: #ef4444; }
+
+  .meter-label {
+    margin-top: 6px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="rack-window">
+  <!-- Top Header -->
+  <div class="top-header">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <div>MODULAR CHANNEL RACK <span>- V2.0</span></div>
+    </div>
+
+    <div class="preset-box">
+      <label>DREAM STRIPS:</label>
+      <select id="presetSelect" onchange="loadDreamStrip(this.value)">
+        <option value="default">VOCAL / DRUMS / BASS (DEFAULT)</option>
+        <option value="vocal">MODERN LEAD VOCAL CHAIN</option>
+        <option value="master">WARM ANALOG MASTERING</option>
+        <option value="spatial">AMBIENT SPATIAL & FX</option>
+      </select>
+    </div>
+
+    <div class="header-controls">
+      <button class="btn-pill" id="abBtn" onclick="toggleAB()">A / B</button>
+      <button class="btn-pill active-amber" id="hqBtn" onclick="toggleHQ()">HQ</button>
+      <div class="cpu-badge">CPU <span id="cpuVal">12%</span></div>
+    </div>
+  </div>
+
+  <!-- 16-Slot Rack Mini-Map -->
+  <div class="minimap-bar">
+    <div class="minimap-title">16-SLOT RACK MINI-MAP</div>
+    <div class="minimap-grid" id="minimapGrid"></div>
+  </div>
+
+  <!-- Main Workspace -->
+  <div class="workspace">
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+      <div class="library-section">
+        <div class="library-header">
+          <h2>MODULE LIBRARY</h2>
+          <span class="library-count" id="libCount">160 MODULES</span>
+        </div>
+
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search 160 modules..." oninput="renderLibrary()" />
+        </div>
+
+        <div class="filter-tabs">
+          <button class="filter-btn active" data-filter="All" onclick="setFilter('All', this)">All</button>
+          <button class="filter-btn" data-filter="EQ" onclick="setFilter('EQ', this)">EQ</button>
+          <button class="filter-btn" data-filter="Comp" onclick="setFilter('Comp', this)">Comp</button>
+          <button class="filter-btn" data-filter="Sat" onclick="setFilter('Sat', this)">Sat</button>
+          <button class="filter-btn" data-filter="FX" onclick="setFilter('FX', this)">FX</button>
+          <button class="filter-btn fav-btn" id="favFilterBtn" onclick="toggleFavFilter(this)">★</button>
+        </div>
+
+        <div class="tree-container" id="libraryTree"></div>
+      </div>
+
+      <!-- Macro Controls -->
+      <div class="macro-section">
+        <div class="macro-title">MACRO CONTROLS</div>
+        <div class="macro-grid" id="macroGrid"></div>
+      </div>
+    </div>
+
+    <!-- Center 16-Slot Scrollable Rack -->
+    <div class="rack-viewport" id="rackViewport"></div>
+
+    <!-- Right Stereo Master Meter -->
+    <div class="master-meter-bar">
+      <div class="meter-col">
+        <div class="meter-track" id="meterIn"></div>
+        <div class="meter-label">IN</div>
+      </div>
+      <div class="meter-col">
+        <div class="meter-track" id="meterOut"></div>
+        <div class="meter-label">OUT</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Complete 8 Categories & 160 Modules Dataset
+  const CATEGORIES = [
+    {
+      id: "preamp",
+      name: "PREAMP & UTILITY",
+      filterTag: "All",
+      color: "cyan",
+      open: false,
+      modules: [
+        "Console Preamp", "Tube Mic Preamp", "Trim / Gain Stage", "Auto-Gain Leveler",
+        "Sub-Bass Enhancer", "Signal Generator", "Phase & Polarity", "DC Offset Filter",
+        "Channel Strip Gain", "Analog Line Driver", "Solid State Preamp", "Vintage Desk Input",
+        "Impedance Matcher", "Micro-Pitch Shift", "Gain Rider", "Input Pad / Boost",
+        "Channel Mute / Solo", "Mono Sum Utility", "Channel Delay / Align", "Output Trim Stage"
+      ]
+    },
+    {
+      id: "eq",
+      name: "EQUALIZERS",
+      filterTag: "EQ",
+      color: "cyan",
+      open: true,
+      modules: [
+        "4-Band Parametric EQ", "8-Band Precision EQ", "British Console EQ", "Vintage Neve EQ",
+        "Pultec Passive EQ", "Dynamic EQ", "Tilt EQ", "High/Low Pass Filter",
+        "Linear Phase EQ", "Graphic 31-Band EQ", "Baxandall Shelving EQ", "API-Style Proportional EQ",
+        "Mid/Side Mastering EQ", "Dynamic Resonance EQ", "Notch / Surgical EQ", "Air Band Enhancer",
+        "Sub-Harmonic EQ", "Analog Curve EQ", "Vocal Presence EQ", "Match EQ"
+      ]
+    },
+    {
+      id: "dynamics",
+      name: "DYNAMICS",
+      filterTag: "Comp",
+      color: "cyan",
+      open: false,
+      modules: [
+        "VCA Compressor", "FET Compressor", "Optical Compressor", "Vari-Mu Compressor",
+        "Multiband Compressor", "Upward Compressor", "Noise Gate / Expander", "Brickwall Limiter",
+        "Parallel Drum Comp", "Bus Glue Compressor", "Diode-Bridge Comp", "Tube Leveling Amp",
+        "Transient Limiter", "Console Crosstalk", "Triode / Pentode Tube", "Wavefolder Distortion",
+        "Bass Amp Sim", "Vinyl Crackle & Warmth", "Analog Console Bus", "Soft Clipper"
+      ]
+    },
+    {
+      id: "saturation",
+      name: "SATURATION & COLOR",
+      filterTag: "Sat",
+      color: "amber",
+      open: true,
+      modules: [
+        "Tube Saturation", "Analog Tape Machine", "Solid State Drive", "Transformer Saturator",
+        "Multiband Saturator", "Bitcrusher / Lo-Fi", "Harmonic Exciter", "Vintage Cassette",
+        "Triode Warmth", "Pentode Crunch", "Tape Hysteresis", "Console Overdrive",
+        "Sub Harmonic Drive", "Rectifier Fuzz", "Valve Preamp Color", "Magnetic Tape Saturation",
+        "Hard / Soft Clipper", "Harmonic Shaper", "Analog Desk Heat", "Retro Lo-Fi Crush"
+      ]
+    },
+    {
+      id: "vocal",
+      name: "VOCAL & RESTORATION",
+      filterTag: "All",
+      color: "cyan",
+      open: false,
+      modules: [
+        "De-Esser", "Dynamic De-Harsher", "Breath Control", "Transient Shaper",
+        "Pitch Corrector", "De-Noiser / Hum", "Plosive / Pop Remover", "De-Click & De-Crackle",
+        "De-Reverb / Room", "Vocal Air Exciter", "Formant Shifter", "Voice Isolator",
+        "Dialogue Leveler", "Mouth De-Clicker", "Spectral Repair", "De-Bleed Drum/Vocal",
+        "Vocal Thickener", "Sibilance Tamer", "Boot Clipper", "Telephone / Radio FX"
+      ]
+    },
+    {
+      id: "spatial",
+      name: "SPATIAL: REVERB & DELAY",
+      filterTag: "FX",
+      color: "purple",
+      open: false,
+      modules: [
+        "Plate Reverb", "Room / Hall Reverb", "Spring Reverb", "Shimmer Reverb",
+        "Stereo / Ping-Pong Delay", "Analog Tape Delay", "Convolution Reverb", "Chamber Reverb",
+        "Cathedral / Arena", "Non-Linear / Gated Verb", "Reverse Reverb", "Slapback Delay",
+        "Multi-Tap Delay", "Dub Echo Delay", "BBD Analog Delay", "Granular Space",
+        "Ambience Micro-Verb", "Diffused Echo", "Ducking Delay", "Early Reflections"
+      ]
+    },
+    {
+      id: "modulation",
+      name: "MODULATION & PITCH",
+      filterTag: "FX",
+      color: "purple",
+      open: false,
+      modules: [
+        "Stereo Chorus", "Analog Flanger", "Vintage Phaser", "Tremolo / Auto-Panner",
+        "Vocal Doubler", "Ring Modulator", "Rotary Speaker", "Vibrato Pitch Mod",
+        "Octave Generator", "Pitch Shifter", "Ensemble Strings", "Dimension Expander",
+        "Auto-Filter / Wah", "Step Filter Mod", "Frequency Shifter", "Barberpole Phaser",
+        "Stereo Detune", "Choir / Harmonizer", "Tape Wobble / Flutter", "Comb Filter Mod"
+      ]
+    },
+    {
+      id: "stereo",
+      name: "STEREO, ROUTING & ANALYSIS",
+      filterTag: "All",
+      color: "cyan",
+      open: false,
+      modules: [
+        "Stereo Imager / Width", "Mid/Side Matrix", "Parallel Split / Mix", "Spectrum & LUFS Meter",
+        "Haas Stereo Widener", "Bass Mono Maker", "Phase Correlation Meter", "Goniometer / Vectorscope",
+        "Multiband Crossover", "Dry/Wet Blend Rack", "A/B Compare Switch", "Sidechain Router",
+        "Surround / Atmos Panner", "Binaural 3D Spatializer", "Oscilloscope View", "Loudness History Graph",
+        "True Peak Meter", "Macro Control Hub", "FX Send / Return", "Master Bus Router"
+      ]
+    }
+  ];
+
+  // Build flat module database with favorites
+  const favoritesSet = new Set([
+    "4-Band Parametric EQ", "8-Band Precision EQ", "Plate Reverb", "Tube Saturation"
+  ]);
+
+  let currentFilter = "All";
+  let favOnly = false;
+  let slots = Array(16).fill(null);
+  let macros = [42, 68, 55, 74];
+  let hqActive = true;
+  let abMode = "A";
+
+  // Helper to create module instance
+  function createModuleInstance(name, categoryName, color) {
+    return {
+      uid: "mod-" + Math.random().toString(36).substr(2, 9),
+      name,
+      category: categoryName,
+      color: color || "cyan",
+      bypass: false,
+      solo: false,
+      mix: 100,
+      trim: 50,
+      phase: false,
+      delta: false,
+      params: {
+        p1: 55,
+        p2: 45,
+        p3: 65,
+        p4: 50
+      }
+    };
+  }
+
+  // Initialize default 4 slots matching the V2.0 concept design
+  function initDefaultSlots() {
+    slots = Array(16).fill(null);
+    slots[0] = createModuleInstance("Console Preamp", "PREAMP & UTILITY", "cyan");
+    slots[1] = createModuleInstance("4-Band Parametric EQ", "EQUALIZERS", "cyan");
+    slots[2] = createModuleInstance("VCA Compressor", "DYNAMICS", "cyan");
+    slots[3] = createModuleInstance("Tube Saturation", "SATURATION & COLOR", "amber");
+  }
+
+  function loadDreamStrip(preset) {
+    slots = Array(16).fill(null);
+    if (preset === "default") {
+      initDefaultSlots();
+    } else if (preset === "vocal") {
+      slots[0] = createModuleInstance("Tube Mic Preamp", "PREAMP & UTILITY", "cyan");
+      slots[1] = createModuleInstance("De-Esser", "VOCAL & RESTORATION", "cyan");
+      slots[2] = createModuleInstance("Optical Compressor", "DYNAMICS", "cyan");
+      slots[3] = createModuleInstance("Air Band Enhancer", "EQUALIZERS", "cyan");
+      slots[4] = createModuleInstance("Plate Reverb", "SPATIAL: REVERB & DELAY", "purple");
+    } else if (preset === "master") {
+      slots[0] = createModuleInstance("Linear Phase EQ", "EQUALIZERS", "cyan");
+      slots[1] = createModuleInstance("Vari-Mu Compressor", "DYNAMICS", "cyan");
+      slots[2] = createModuleInstance("Analog Tape Machine", "SATURATION & COLOR", "amber");
+      slots[3] = createModuleInstance("Stereo Imager / Width", "STEREO, ROUTING & ANALYSIS", "cyan");
+      slots[4] = createModuleInstance("Brickwall Limiter", "DYNAMICS", "cyan");
+    } else if (preset === "spatial") {
+      slots[0] = createModuleInstance("Stereo Chorus", "MODULATION & PITCH", "purple");
+      slots[1] = createModuleInstance("Analog Tape Delay", "SPATIAL: REVERB & DELAY", "purple");
+      slots[2] = createModuleInstance("Shimmer Reverb", "SPATIAL: REVERB & DELAY", "purple");
+      slots[3] = createModuleInstance("Binaural 3D Spatializer", "STEREO, ROUTING & ANALYSIS", "cyan");
+    }
+    renderAll();
+  }
+
+  // Render Library Tree
+  function renderLibrary() {
+    const treeEl = document.getElementById("libraryTree");
+    const query = document.getElementById("searchInput").value.toLowerCase().trim();
+    treeEl.innerHTML = "";
+    let totalVisible = 0;
+
+    CATEGORIES.forEach((cat) => {
+      if (currentFilter !== "All" && cat.filterTag !== currentFilter) return;
+
+      const filteredMods = cat.modules
+        .map((m, idx) => ({ name: m, num: idx + 1, fav: favoritesSet.has(m) }))
+        .filter((m) => {
+          const matchQuery = m.name.toLowerCase().includes(query);
+          const matchFav = !favOnly || m.fav;
+          return matchQuery && matchFav;
+        })
+        .sort((a, b) => (a.fav === b.fav ? a.num - b.num : a.fav ? -1 : 1));
+
+      if (filteredMods.length === 0) return;
+      totalVisible += filteredMods.length;
+
+      const isOpen = query.length > 0 || favOnly || cat.open;
+      const group = document.createElement("div");
+      group.className = "cat-group" + (isOpen ? " open" : "");
+
+      const header = document.createElement("div");
+      header.className = "cat-header";
+      header.innerHTML = `
+        <div class="cat-title-wrap">
+          <span class="cat-arrow">▶</span>
+          <span>${cat.name}</span>
+        </div>
+        <span class="cat-badge">(${filteredMods.length})</span>
+      `;
+      header.onclick = () => {
+        cat.open = !cat.open;
+        renderLibrary();
+      };
+
+      const itemsDiv = document.createElement("div");
+      itemsDiv.className = "cat-items";
+
+      filteredMods.forEach((mod) => {
+        const row = document.createElement("div");
+        row.className = "module-item";
+        row.title = "Click to add to next available rack slot";
+        row.innerHTML = `
+          <div class="module-item-left">
+            <span class="mod-num">${mod.num}.</span>
+            <span>${mod.name}</span>
+          </div>
+          <button class="star-toggle ${mod.fav ? "starred" : ""}" title="Pin Favorite">★</button>
+        `;
+
+        row.querySelector(".star-toggle").onclick = (e) => {
+          e.stopPropagation();
+          if (favoritesSet.has(mod.name)) {
+            favoritesSet.delete(mod.name);
+          } else {
+            favoritesSet.add(mod.name);
+          }
+          renderLibrary();
+        };
+
+        row.onclick = () => addModuleToSlot(mod.name, cat.name, cat.color);
+        itemsDiv.appendChild(row);
+      });
+
+      group.appendChild(header);
+      group.appendChild(itemsDiv);
+      treeEl.appendChild(group);
+    });
+
+    document.getElementById("libCount").textContent = `${totalVisible} MODULES`;
+  }
+
+  function setFilter(tag, btn) {
+    currentFilter = tag;
+    document.querySelectorAll(".filter-btn:not(.fav-btn)").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderLibrary();
+  }
+
+  function toggleFavFilter(btn) {
+    favOnly = !favOnly;
+    btn.classList.toggle("active", favOnly);
+    renderLibrary();
+  }
+
+  // Add module to slot
+  function addModuleToSlot(name, catName, color, targetIdx = null) {
+    const idx = targetIdx !== null ? targetIdx : slots.findIndex((s) => s === null);
+    if (idx === -1) {
+      alert("All 16 Rack Slots are full! Remove a module first.");
+      return;
+    }
+    slots[idx] = createModuleInstance(name, catName, color);
+    renderAll();
+    scrollToSlot(idx);
+  }
+
+  function removeSlot(idx) {
+    slots[idx] = null;
+    renderAll();
+  }
+
+  function scrollToSlot(idx) {
+    const viewport = document.getElementById("rackViewport");
+    const targetCard = viewport.children[idx];
+    if (targetCard) {
+      targetCard.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+  }
+
+  // Interactive SVG Rotary Knob Builder
+  function createKnobElement({ label, value, size = 44, color = "cyan", defaultVal = 50, onChange }) {
+    const strokeHex = color === "amber" ? "#f59e0b" : color === "purple" ? "#a855f7" : "#22d3ee";
+    const r = size / 2 - 4;
+    const circ = 2 * Math.PI * r;
+    const arc = circ * 0.75;
+    const offset = arc - (value / 100) * arc;
+    const deg = -135 + (value / 100) * 270;
+    const capSize = size - 12;
+
+    const wrap = document.createElement("div");
+    wrap.className = "knob-wrap";
+
+    wrap.innerHTML = `
+      <div class="knob-control" style="width:${size}px;height:${size}px;" title="Drag vertically or Double-click to reset">
+        <svg width="${size}" height="${size}">
+          <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#1e242d" stroke-width="3.2"
+            stroke-dasharray="${arc} ${circ}" stroke-linecap="round" transform="rotate(135 ${size/2} ${size/2})" />
+          <circle class="knob-arc" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${strokeHex}" stroke-width="3.2"
+            stroke-dasharray="${arc} ${circ}" stroke-dashoffset="${offset}" stroke-linecap="round"
+            transform="rotate(135 ${size/2} ${size/2})" />
+        </svg>
+        <div class="knob-cap" style="width:${capSize}px;height:${capSize}px;transform:rotate(${deg}deg);">
+          <div class="knob-pointer" style="background:${strokeHex};"></div>
+        </div>
+      </div>
+      <div class="knob-label">${label}</div>
+    `;
+
+    const ctrl = wrap.querySelector(".knob-control");
+    const arcEl = wrap.querySelector(".knob-arc");
+    const capEl = wrap.querySelector(".knob-cap");
+
+    let currentVal = value;
+    let dragging = false;
+    let startY = 0;
+    let startVal = value;
+
+    const updateVisual = (v) => {
+      currentVal = Math.max(0, Math.min(100, Math.round(v)));
+      const newOffset = arc - (currentVal / 100) * arc;
+      const newDeg = -135 + (currentVal / 100) * 270;
+      arcEl.setAttribute("stroke-dashoffset", newOffset);
+      capEl.style.transform = `rotate(${newDeg}deg)`;
+      if (onChange) onChange(currentVal);
+    };
+
+    ctrl.addEventListener("mousedown", (e) => {
+      dragging = true;
+      startY = e.clientY;
+      startVal = currentVal;
+      e.preventDefault();
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!dragging) return;
+      const delta = startY - e.clientY;
+      updateVisual(startVal + delta * 0.65);
+    });
+
+    window.addEventListener("mouseup", () => {
+      dragging = false;
+    });
+
+    ctrl.addEventListener("dblclick", () => updateVisual(defaultVal));
+
+    return wrap;
+  }
+
+  // Render 16-Slot Mini-Map
+  function renderMiniMap() {
+    const grid = document.getElementById("minimapGrid");
+    grid.innerHTML = "";
+    slots.forEach((slot, idx) => {
+      const pip = document.createElement("button");
+      pip.className = "slot-pip";
+      if (slot) {
+        pip.classList.add(slot.color === "amber" ? "occupied-amber" : "occupied-cyan");
+        pip.title = `Slot ${idx + 1}: ${slot.name}`;
+      } else {
+        pip.title = `Slot ${idx + 1}: Empty`;
+      }
+      pip.textContent = idx + 1;
+      pip.onclick = () => scrollToSlot(idx);
+      grid.appendChild(pip);
+    });
+
+    const activeCount = slots.filter(Boolean).length;
+    document.getElementById("cpuVal").textContent = `${4 + activeCount * 2}%`;
+  }
+
+  // Render 16-Slot Rack Viewport
+  function renderRack() {
+    const viewport = document.getElementById("rackViewport");
+    viewport.innerHTML = "";
+
+    slots.forEach((slot, idx) => {
+      if (!slot) {
+        const empty = document.createElement("div");
+        empty.className = "empty-slot";
+        empty.innerHTML = `
+          <div class="empty-slot-num">SLOT ${idx + 1}</div>
+          <div class="empty-plus">+</div>
+          <div class="empty-label">+ DROP MODULE</div>
+        `;
+        empty.onclick = () => addModuleToSlot("4-Band Parametric EQ", "EQUALIZERS", "cyan", idx);
+        viewport.appendChild(empty);
+        return;
+      }
+
+      const card = document.createElement("div");
+      card.className = "module-card" + (slot.bypass ? " bypassed" : "");
+
+      // Header
+      const header = document.createElement("div");
+      header.className = "mod-header";
+      header.innerHTML = `
+        <div class="mod-actions">
+          <button class="mod-btn ${slot.bypass ? "bypass-on" : ""}">BYPASS</button>
+          <button class="mod-btn ${slot.solo ? "solo-on" : ""}">SOLO</button>
+          <button class="mod-remove" title="Remove">✕</button>
+        </div>
+        <div class="mod-title" title="${slot.name}">${slot.name}</div>
+        <div class="mod-cat-tag">${slot.category}</div>
+      `;
+
+      const [bypassBtn, soloBtn, removeBtn] = header.querySelectorAll("button");
+      bypassBtn.onclick = () => { slot.bypass = !slot.bypass; renderRack(); };
+      soloBtn.onclick = () => { slot.solo = !slot.solo; renderRack(); };
+      removeBtn.onclick = () => removeSlot(idx);
+
+      // Center Controls Body
+      const body = document.createElement("div");
+      body.className = "mod-body";
+
+      if (slot.color === "amber") {
+        // Saturation style with Transfer Curve
+        body.appendChild(createKnobElement({
+          label: "DRIVE",
+          value: slot.params.p1,
+          size: 66,
+          color: "amber",
+          onChange: (v) => {
+            slot.params.p1 = v;
+            const path = body.querySelector(".curve-path");
+            if (path) path.setAttribute("d", `M 5 55 Q 50 ${55 - v * 0.45}, 95 5`);
+          }
+        }));
+
+        const viz = document.createElement("div");
+        viz.className = "visualizer-box";
+        viz.innerHTML = `
+          <svg viewBox="0 0 100 60" width="100%" height="100%">
+            <path d="M0 30 H100 M50 0 V60" stroke="#1e2530" stroke-width="1"/>
+            <path class="curve-path" d="M 5 55 Q 50 ${55 - slot.params.p1 * 0.45}, 95 5" fill="none" stroke="#f59e0b" stroke-width="2.2"/>
+          </svg>
+        `;
+        body.appendChild(viz);
+      } else if (slot.category === "EQUALIZERS") {
+        // EQ Curve + 3 knobs
+        const viz = document.createElement("div");
+        viz.className = "visualizer-box";
+        viz.innerHTML = `
+          <svg viewBox="0 0 100 50" width="100%" height="100%">
+            <path d="M 0 32 Q 30 12, 55 28 T 100 20" fill="rgba(34,211,238,0.16)" stroke="#22d3ee" stroke-width="2"/>
+          </svg>
+        `;
+        body.appendChild(viz);
+
+        const grid3 = document.createElement("div");
+        grid3.className = "knob-grid-3";
+        ["FREQ", "GAIN", "Q"].forEach((lbl, i) => {
+          const key = `p${i + 1}`;
+          grid3.appendChild(createKnobElement({
+            label: lbl,
+            value: slot.params[key],
+            size: 38,
+            color: "cyan",
+            onChange: (v) => { slot.params[key] = v; }
+          }));
+        });
+        body.appendChild(grid3);
+      } else {
+        // Standard 4-Knob Processor Grid
+        const grid2 = document.createElement("div");
+        grid2.className = "knob-grid-2";
+        const labels = slot.category === "DYNAMICS"
+          ? ["THRESH", "RATIO", "ATTACK", "RELEASE"]
+          : ["PARAM 1", "PARAM 2", "TONE", "LEVEL"];
+
+        labels.forEach((lbl, i) => {
+          const key = `p${i + 1}`;
+          grid2.appendChild(createKnobElement({
+            label: lbl,
+            value: slot.params[key],
+            size: 44,
+            color: slot.color,
+            onChange: (v) => { slot.params[key] = v; }
+          }));
+        });
+        body.appendChild(grid2);
+      }
+
+      // Per-Module Footer Strip (Dry/Wet Mix, Output Trim, Phase, Delta)
+      const footer = document.createElement("div");
+      footer.className = "mod-footer";
+      footer.innerHTML = `<div class="footer-label">FOOTER STRIP</div>`;
+
+      const fKnobs = document.createElement("div");
+      fKnobs.className = "footer-knobs";
+      fKnobs.appendChild(createKnobElement({
+        label: "DRY/WET",
+        value: slot.mix,
+        size: 36,
+        color: "cyan",
+        defaultVal: 100,
+        onChange: (v) => { slot.mix = v; }
+      }));
+      fKnobs.appendChild(createKnobElement({
+        label: "TRIM",
+        value: slot.trim,
+        size: 36,
+        color: "cyan",
+        defaultVal: 50,
+        onChange: (v) => { slot.trim = v; }
+      }));
+
+      const fToggles = document.createElement("div");
+      fToggles.className = "footer-toggles";
+      fToggles.innerHTML = `
+        <button class="mini-toggle ${slot.phase ? "active-amber" : ""}" title="Phase Invert">Ø</button>
+        <button class="mini-toggle ${slot.delta ? "active-cyan" : ""}" title="Delta Listen">Δ</button>
+      `;
+      const [phaseBtn, deltaBtn] = fToggles.querySelectorAll("button");
+      phaseBtn.onclick = () => { slot.phase = !slot.phase; renderRack(); };
+      deltaBtn.onclick = () => { slot.delta = !slot.delta; renderRack(); };
+
+      footer.appendChild(fKnobs);
+      footer.appendChild(fToggles);
+
+      card.appendChild(header);
+      card.appendChild(body);
+      card.appendChild(footer);
+      viewport.appendChild(card);
+    });
+  }
+
+  // Render Sidebar Macros
+  function renderMacros() {
+    const grid = document.getElementById("macroGrid");
+    grid.innerHTML = "";
+    macros.forEach((val, i) => {
+      grid.appendChild(createKnobElement({
+        label: `M${i + 1}`,
+        value: val,
+        size: 40,
+        color: i >= 2 ? "amber" : "cyan",
+        onChange: (v) => { macros[i] = v; }
+      }));
+    });
+  }
+
+  // Render & Animate Stereo Master Meters
+  function initMeters() {
+    ["meterIn", "meterOut"].forEach((id) => {
+      const track = document.getElementById(id);
+      for (let i = 0; i < 20; i++) {
+        const led = document.createElement("div");
+        led.className = "meter-led";
+        track.appendChild(led);
+      }
+    });
+
+    setInterval(() => {
+      const inLevel = 11 + Math.floor(Math.random() * 5);
+      const outLevel = 13 + Math.floor(Math.random() * 5);
+      updateMeter("meterIn", inLevel);
+      updateMeter("meterOut", outLevel);
+    }, 140);
+  }
+
+  function updateMeter(id, activeBars) {
+    const leds = document.getElementById(id).children;
+    const total = leds.length;
+    for (let i = 0; i < total; i++) {
+      const barFromBottom = total - i;
+      leds[i].className = "meter-led";
+      if (barFromBottom <= activeBars) {
+        if (barFromBottom > 17) leds[i].classList.add("red");
+        else if (barFromBottom > 13) leds[i].classList.add("amber");
+        else leds[i].classList.add("green");
+      }
+    }
+  }
+
+  function toggleHQ() {
+    hqActive = !hqActive;
+    document.getElementById("hqBtn").classList.toggle("active-amber", hqActive);
+  }
+
+  function toggleAB() {
+    abMode = abMode === "A" ? "B" : "A";
+    const btn = document.getElementById("abBtn");
+    btn.textContent = `ACTIVE: ${abMode}`;
+    btn.classList.toggle("active-amber", abMode === "B");
+  }
+
+  function renderAll() {
+    renderMiniMap();
+    renderRack();
+  }
+
+  // Boot Application
+  initDefaultSlots();
+  renderLibrary();
+  renderMacros();
+  renderAll();
+  initMeters();
+</script>
+</body>
+</html>

@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GTLab // Track Inspector &amp; Multi-Band PEQ-8 Pro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-dim": "#11131a",
+            "surface-variant": "#33353c",
+            "on-tertiary-fixed": "#23005c",
+            "on-error": "#690005",
+            "outline-variant": "#3b494b",
+            "on-secondary-fixed-variant": "#8f0044",
+            "error-container": "#93000a",
+            "secondary": "#ffb1c4",
+            "secondary-fixed-dim": "#ffb1c4",
+            "outline": "#849495",
+            "tertiary-container": "#e1d2ff",
+            "inverse-primary": "#006970",
+            "on-background": "#e1e2eb",
+            "on-secondary-fixed": "#3f001a",
+            "on-error-container": "#ffdad6",
+            "primary-fixed-dim": "#00dbe9",
+            "tertiary": "#faf3ff",
+            "tertiary-fixed-dim": "#d0bcff",
+            "surface": "#11131a",
+            "error": "#ffb4ab",
+            "surface-container-lowest": "#0c0e14",
+            "primary-container": "#00f0ff",
+            "surface-tint": "#00dbe9",
+            "on-primary-container": "#006970",
+            "on-surface-variant": "#b9cacb",
+            "secondary-fixed": "#ffd9e1",
+            "on-tertiary-fixed-variant": "#5516be",
+            "primary-fixed": "#7df4ff",
+            "on-surface": "#e1e2eb",
+            "inverse-on-surface": "#2e3037",
+            "surface-container": "#1d1f26",
+            "on-primary": "#00363a",
+            "surface-bright": "#373940",
+            "secondary-container": "#ff2a85",
+            "on-tertiary": "#3c0091",
+            "on-primary-fixed": "#002022",
+            "on-tertiary-container": "#6d3bd7",
+            "on-primary-fixed-variant": "#004f54",
+            "on-secondary-container": "#590028",
+            "tertiary-fixed": "#e9ddff",
+            "inverse-surface": "#e1e2eb",
+            "on-secondary": "#65002e",
+            "background": "#11131a",
+            "surface-container-high": "#282a31",
+            "surface-container-highest": "#33353c",
+            "surface-container-low": "#191b22",
+            "primary": "#dbfcff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "fontFamily": {
+            "headline": ["Space Grotesk", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"],
+            "sans": ["Inter", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      background-color: #0c0e14;
+      color: #e1e2eb;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    .glass-panel {
+      background: linear-gradient(165deg, rgba(29, 31, 38, 0.85) 0%, rgba(12, 14, 20, 0.94) 100%);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(59, 73, 75, 0.5);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(219, 252, 255, 0.08);
+    }
+    .band-card {
+      background: linear-gradient(180deg, rgba(29, 31, 38, 0.72) 0%, rgba(17, 19, 26, 0.94) 100%);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(59, 73, 75, 0.55);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .band-card:hover {
+      border-color: rgba(0, 240, 255, 0.45);
+      box-shadow: 0 12px 28px rgba(0, 240, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .band-card.is-bypassed {
+      opacity: 0.42;
+      filter: grayscale(0.85);
+      border-color: rgba(59, 73, 75, 0.3);
+    }
+    .band-card.is-locked {
+      border-style: dashed;
+    }
+    .band-card.is-solo-active {
+      border-color: #00f0ff !important;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    /* Rotary Knob */
+    .rotary-knob {
+      position: relative;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #373940, #11131a 80%);
+      border: 1.5px solid #3b494b;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+      cursor: ns-resize;
+      user-select: none;
+      touch-action: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      flex-shrink: 0;
+    }
+    .rotary-knob:hover, .rotary-knob.is-dragging {
+      border-color: #00f0ff;
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.25);
+    }
+    .rotary-knob::after {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      width: 2.5px;
+      height: 13px;
+      background: #00f0ff;
+      border-radius: 2px;
+      transform-origin: 50% 18px;
+      transform: translateX(-50%) rotate(var(--knob-angle, 0deg));
+      box-shadow: 0 0 8px #00f0ff;
+    }
+    /* Custom vertical slider */
+    .v-slider-track {
+      position: relative;
+      width: 8px;
+      background: #0c0e14;
+      border: 1px solid #3b494b;
+      border-radius: 999px;
+      cursor: ns-resize;
+      touch-action: none;
+    }
+    .v-slider-fill {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-radius: 999px;
+      pointer-events: none;
+    }
+    .v-slider-thumb {
+      position: absolute;
+      left: 50%;
+      transform: translate(-50%, 50%);
+      width: 18px;
+      height: 10px;
+      border-radius: 4px;
+      background: #00f0ff;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.85);
+      border: 1px solid #ffffff;
+      cursor: ns-resize;
+      touch-action: none;
+    }
+    /* Custom Horizontal Scrollbar */
+    .horizontal-scroll-container::-webkit-scrollbar {
+      height: 6px;
+    }
+    .horizontal-scroll-container::-webkit-scrollbar-track {
+      background: #0c0e14;
+      border-radius: 4px;
+    }
+    .horizontal-scroll-container::-webkit-scrollbar-thumb {
+      background: #3b494b;
+      border-radius: 4px;
+    }
+    .horizontal-scroll-container::-webkit-scrollbar-thumb:hover {
+      background: #00f0ff;
+    }
+    /* Editable input pill */
+    .val-pill {
+      cursor: text;
+      transition: all 0.15s ease;
+    }
+    .val-pill:hover {
+      border-color: #00f0ff;
+      color: #00f0ff;
+      background: rgba(0, 240, 255, 0.08);
+    }
+    /* AI Shimmer Glow */
+    @keyframes ai-pulse-glow {
+      0%, 100% { box-shadow: 0 0 8px rgba(225, 210, 255, 0.25), inset 0 0 6px rgba(0, 240, 255, 0.15); }
+      50% { box-shadow: 0 0 16px rgba(0, 240, 255, 0.45), inset 0 0 10px rgba(225, 210, 255, 0.35); }
+    }
+    .ai-match-btn:hover {
+      animation: ai-pulse-glow 1.5s infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-2.5 sm:p-4 gap-3 select-none text-on-surface">
+<!-- TOP BAR & TRACK SELECTOR -->
+<header class="glass-panel rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 border border-outline-variant/60 shadow-xl">
+<div class="flex items-center gap-3">
+<!-- GTLab Logo -->
+<div class="flex items-center gap-2 pr-3 border-r border-outline-variant/40">
+<div class="w-8 h-8 rounded-lg bg-primary-container/20 border border-primary-container/60 flex items-center justify-center text-primary-container shadow-[0_0_14px_rgba(0,240,255,0.35)]">
+<span class="material-symbols-outlined text-lg">equalizer</span>
+</div>
+<div>
+<div class="font-headline font-bold text-xs tracking-wider text-primary">GTLab <span class="text-primary-container text-[11px] font-mono">PEQ-8 PRO</span></div>
+<div class="font-mono text-[9px] text-on-surface-variant tracking-widest uppercase">Track Inspector &amp; Matrix</div>
+</div>
+</div>
+<!-- Channel Switcher Selector -->
+<div class="flex items-center gap-2">
+<label class="text-[10px] font-mono uppercase text-on-surface-variant hidden sm:inline">Active Channel:</label>
+<div class="relative">
+<select class="bg-surface-container-lowest border border-outline-variant/70 text-primary-fixed text-xs font-mono font-semibold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-primary-container appearance-none cursor-pointer" id="channel-selector">
+<option selected="" value="ch1">CH 01: Kick Sub-Punch</option>
+<option value="ch2">CH 02: Snare 808 Crisp</option>
+<option value="ch3">CH 03: Bass Reese Heavy</option>
+<option value="ch4">CH 04: Synth Lead Arp</option>
+<option value="ch5">CH 05: Vox Chop Glitch</option>
+<option value="ch6">CH 06: Atmos Pad Void</option>
+</select>
+<span class="material-symbols-outlined pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant">expand_more</span>
+</div>
+</div>
+</div>
+<!-- DSP & Quick Action Control Buttons -->
+<div class="flex items-center gap-2 flex-wrap font-mono text-xs">
+<div class="px-2.5 py-1 rounded-lg bg-surface-container-lowest border border-outline-variant/50 hidden md:flex items-center gap-1.5 text-[10px]">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+<span class="text-on-surface-variant">DSP:</span>
+<span class="text-primary-fixed font-bold">14.8%</span>
+<span class="text-outline-variant mx-1">|</span>
+<span class="text-on-surface-variant">96kHz / 32-bit Float</span>
+</div>
+<!-- Quick Action Buttons -->
+<div class="flex items-center gap-1.5">
+<button class="px-2.5 py-1 rounded bg-surface-container-lowest border border-outline-variant/60 hover:border-secondary-container hover:text-secondary-container text-[11px] font-semibold flex items-center gap-1 transition" id="btn-global-bypass" title="Global EQ Bypass">
+<span class="material-symbols-outlined text-sm">power_settings_new</span>
+<span>BYPASS</span>
+</button>
+<button class="px-2.5 py-1 rounded bg-surface-container-lowest border border-primary-container/40 text-primary-fixed text-[11px] font-semibold flex items-center gap-1 transition hover:bg-primary-container/10" id="btn-linear-phase" title="Toggle Linear Phase Oversampling">
+<span class="material-symbols-outlined text-sm">tune</span>
+<span>LIN PHASE</span>
+</button>
+<!-- Enhanced Autonomous AI EQ-Match Preset Dropdown & Action -->
+<div class="relative flex items-center">
+<button class="px-2.5 py-1 rounded-l bg-surface-container-lowest border border-r-0 border-outline-variant/60 hover:border-tertiary-fixed-dim text-tertiary-fixed-dim text-[11px] font-semibold flex items-center gap-1 transition shadow-[0_0_8px_rgba(208,188,255,0.2)]" id="btn-auto-match" title="Neural AI Spectrum Curve Match">
+<span class="material-symbols-outlined text-sm text-primary-container">auto_fix_high</span>
+<span>AI MATCH</span>
+</button>
+<div class="relative">
+<select class="bg-surface-container-lowest border border-outline-variant/60 text-primary-fixed text-[10px] font-mono rounded-r px-2 py-1 pr-6 hover:border-tertiary-fixed-dim focus:outline-none focus:border-primary-container appearance-none cursor-pointer" id="ai-preset-dropdown" title="Autonomous AI Target EQ Profile">
+<option value="vocal">AI: Vocal Clarity</option>
+<option value="sub">AI: Sub Tighten</option>
+<option value="demud">AI: De-Mud Clean</option>
+<option value="air">AI: Air Sparkle</option>
+<option value="dynamic">AI: Neutral Flat Match</option>
+</select>
+<span class="material-symbols-outlined pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-xs text-on-surface-variant">expand_more</span>
+</div>
+</div>
+<button class="px-2 py-1 rounded bg-surface-container-lowest border border-outline-variant/60 text-on-surface-variant hover:text-on-surface text-[11px] font-bold transition" id="btn-ab-compare" title="A/B Compare Profiles">
+          A / B
+        </button>
+<button class="px-2 py-1 rounded bg-surface-container-lowest border border-outline-variant/60 hover:border-error text-error text-[11px] transition" id="btn-reset-eq" title="Reset All Bands to Default">
+          RESET
+        </button>
+</div>
+</div>
+</header>
+<!-- MAIN EQ/PEQ MODULE INSPECTOR CONTAINER -->
+<main class="flex-1 flex flex-col gap-3 glass-panel rounded-xl p-3 md:p-4 border border-outline-variant/50 relative overflow-hidden">
+<!-- TOP ROW: MASTER EQ GAIN (Left) + HORIZONTAL MULTI-BAND EQ STRIP (Right - TALLER RACK) -->
+<div class="flex flex-col lg:flex-row items-stretch gap-3.5 min-h-[420px]">
+<!-- 2.A: MASTER EQ GAIN PANEL (Left side) -->
+<section aria-label="Master EQ Gain Control" class="w-full lg:w-44 shrink-0 bg-surface-container-lowest/80 border border-outline-variant/60 rounded-xl p-3 flex flex-col items-center justify-between shadow-inner">
+<div class="w-full flex items-center justify-between pb-1 border-b border-outline-variant/30">
+<span class="font-headline text-[11px] font-bold tracking-wider text-primary">MASTER GAIN</span>
+<span class="font-mono text-[9px] px-1.5 py-0.2 rounded bg-primary-container/10 text-primary-fixed border border-primary-container/30">EQ OUT</span>
+</div>
+<div class="flex items-center justify-center gap-3 my-2 w-full flex-1">
+<!-- dB Scale Ticks -->
+<div class="flex flex-col justify-between h-72 text-[9px] font-mono text-on-surface-variant/80 text-right pr-1 select-none">
+<span>+18</span>
+<span>+12</span>
+<span>+6</span>
+<span class="text-primary font-bold">0</span>
+<span>-6</span>
+<span>-12</span>
+<span>-18</span>
+</div>
+<!-- Vertical Slider Column -->
+<div class="relative h-72 flex items-center justify-center">
+<!-- Center zero marker line -->
+<div class="absolute w-5 h-px bg-primary/40 top-1/2 -translate-y-1/2 pointer-events-none"></div>
+<!-- Slider Track -->
+<div class="v-slider-track h-72 w-2 bg-surface-container-high rounded-full relative overflow-visible cursor-pointer" id="master-gain-track">
+<!-- Slider Zero-Centered Dynamic Fill -->
+<div class="v-slider-fill bg-gradient-to-t from-primary-container to-secondary-container" id="master-gain-fill" style="top: 50%; height: 0%;"></div>
+<!-- Draggable Thumb -->
+<div class="v-slider-thumb" id="master-gain-thumb" style="bottom: 50%;"></div>
+</div>
+</div>
+<!-- Dual LED VU Level Meter -->
+<div class="h-72 w-4 bg-surface-container-high/80 rounded-md p-0.5 flex gap-0.5 border border-outline-variant/40 shadow-inner">
+<div class="flex-1 bg-surface-container-lowest rounded-sm overflow-hidden flex flex-col-reverse">
+<div class="w-full bg-gradient-to-t from-emerald-400 via-primary-container to-secondary-container transition-all duration-75" id="master-vu-l" style="height: 72%;"></div>
+</div>
+<div class="flex-1 bg-surface-container-lowest rounded-sm overflow-hidden flex flex-col-reverse">
+<div class="w-full bg-gradient-to-t from-emerald-400 via-primary-container to-secondary-container transition-all duration-75" id="master-vu-r" style="height: 68%;"></div>
+</div>
+</div>
+</div>
+<!-- Master Gain Editable Value Box -->
+<div class="w-full flex flex-col items-center gap-1 pt-1 border-t border-outline-variant/30 font-mono">
+<div class="text-[9px] uppercase tracking-wider text-on-surface-variant">Module Trim</div>
+<div class="flex items-center gap-1">
+<input class="val-pill w-20 text-center text-xs font-mono font-bold bg-surface-container-high border border-outline-variant/70 rounded-md px-1 py-1 text-primary-fixed focus:outline-none focus:border-primary-container focus:bg-surface-container-lowest shadow-inner" id="master-gain-input" title="Click to edit Master Gain (-18 to +18 dB)" type="text" value="+0.0 dB"/>
+</div>
+</div>
+</section>
+<!-- 2.B: HORIZONTAL MULTI-BAND EQ STRIP CONTAINER (Vertically Taller & Roomier) -->
+<section aria-label="Horizontal Multi-Band EQ Strip" class="flex-1 flex flex-col min-w-0 bg-surface-container-low/50 rounded-xl p-2.5 sm:p-3 border border-outline-variant/40">
+<div class="flex items-center justify-between pb-2 mb-2 border-b border-outline-variant/40">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-base">tune</span>
+<span class="font-headline text-xs font-bold uppercase tracking-wider text-primary">Parametric Frequency Bands</span>
+<span class="font-mono text-[10px] text-on-surface-variant px-2 py-0.5 rounded bg-surface-container-lowest border border-outline-variant/50" id="active-band-count">5 BANDS LOADED</span>
+<div class="hidden xl:flex items-center gap-1 text-[10px] font-mono text-tertiary-fixed-dim bg-tertiary-container/10 px-2 py-0.5 rounded border border-tertiary-fixed-dim/30">
+<span class="material-symbols-outlined text-xs">auto_awesome</span>
+<span>Smart Autonomous Resonance Suppression: Active</span>
+</div>
+</div>
+<div class="flex items-center gap-2 text-xs font-mono">
+<span class="text-[10px] text-on-surface-variant hidden sm:inline">Scroll ↔ or drag visualizer to navigate</span>
+<button class="px-2.5 py-1 rounded bg-primary-container/15 hover:bg-primary-container/30 text-primary-container border border-primary-container/50 font-mono text-[11px] font-bold flex items-center gap-1 transition" id="btn-add-band">
+<span class="material-symbols-outlined text-sm">add</span> ADD BAND
+            </button>
+</div>
+</div>
+<!-- Horizontally Scrollable Cards Container (Taller min-height for extended breathing room) -->
+<div class="horizontal-scroll-container flex-1 flex items-stretch gap-3.5 overflow-x-auto pb-2 pt-1 select-none scroll-smooth min-h-[360px]" id="bands-scroll-container">
+<!-- Band cards generated dynamically by JavaScript -->
+</div>
+</section>
+</div>
+<!-- 2.C: LIVE ANIMATED VISUALIZER WITH REAL-TIME AUDIO SOLO PREVIEW / AUDITION -->
+<section aria-label="Interactive Composite EQ Visualizer" class="relative rounded-xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden shadow-2xl flex flex-col">
+<!-- Top Bar of Visualizer: Status, Solo Audition Mode, Grid markers & Viewport guide -->
+<div class="px-3 py-1.5 bg-surface-container-high/60 border-b border-outline-variant/40 flex items-center justify-between text-[10px] font-mono text-on-surface-variant flex-wrap gap-2">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="text-primary-fixed font-semibold">PEQ-8 NEURAL CURVE</span>
+<span class="text-outline-variant">|</span>
+<!-- Real-Time Solo Preview Status Badge / Toggle Button -->
+<button class="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono transition border bg-surface-container-lowest border-outline-variant/60 hover:border-primary-container text-on-surface-variant" id="btn-global-solo-toggle" title="Click or hover across visualizer to isolate / solo listen to specific frequencies">
+<span class="material-symbols-outlined text-xs text-primary-container">headphones</span>
+<span id="solo-preview-status-text">SOLO PREVIEW: OFF</span>
+</button>
+<span class="text-outline-variant hidden sm:inline">|</span>
+<span class="hidden sm:inline text-on-surface-variant/80">Hover or drag canvas to Solo Audition frequencies</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="hidden sm:flex items-center gap-1 text-[9px] px-2 py-0.5 rounded bg-primary-container/10 border border-primary-container/30 text-primary-container" id="solo-indicator-pill" style="display: none;">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+<span id="solo-live-hz-text">AUDITION SOLO: 1.2 kHz (Q: 3.5)</span>
+</div>
+<span class="hidden md:inline">FREQ: 20 Hz – 20 kHz</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-lowest border border-outline-variant/50 text-secondary-fixed">LIVE FFT + RTA</span>
+</div>
+</div>
+<!-- Canvas Wrap with Touch/Drag Support -->
+<div class="relative w-full h-56 sm:h-64 cursor-crosshair" id="eq-visualizer-wrap">
+<canvas class="w-full h-full block" id="eq-main-canvas"></canvas>
+<!-- Frequency Scale overlay at bottom -->
+<div class="absolute bottom-1 inset-x-3 pointer-events-none flex justify-between font-mono text-[9px] text-on-surface-variant/60">
+<span>20Hz</span>
+<span>50Hz</span>
+<span>100Hz</span>
+<span>250Hz</span>
+<span>500Hz</span>
+<span>1kHz</span>
+<span>2.5kHz</span>
+<span>5kHz</span>
+<span>10kHz</span>
+<span>20kHz</span>
+</div>
+<!-- dB Amplitude scale overlay on left -->
+<div class="absolute top-2 left-2 pointer-events-none flex flex-col justify-between h-48 font-mono text-[8px] text-on-surface-variant/50">
+<span>+15 dB</span>
+<span>+9 dB</span>
+<span>0 dB</span>
+<span>-9 dB</span>
+<span>-15 dB</span>
+</div>
+<!-- Audition Solo Overlay Marker / Floating Tag -->
+<div class="absolute top-2 pointer-events-none transition-all duration-75 flex flex-col items-center opacity-0 -translate-x-1/2 z-20" id="solo-marker-overlay">
+<div class="px-2 py-0.5 rounded bg-primary-container text-on-primary font-mono text-[9px] font-bold flex items-center gap-1 shadow-[0_0_12px_rgba(0,240,255,0.7)]">
+<span class="material-symbols-outlined text-[11px]">headphones</span>
+<span id="solo-marker-freq">1.2 kHz</span>
+</div>
+<div class="w-0.5 h-48 bg-gradient-to-b from-primary-container via-primary-container/80 to-transparent shadow-[0_0_10px_#00f0ff]"></div>
+</div>
+<!-- Sync Viewport Window Overlay: Highlights the visible bands range -->
+<div class="absolute top-0 bottom-0 border-l border-r border-primary-container/40 bg-primary-container/5 pointer-events-none transition-all duration-75" id="vis-viewport-indicator" style="left: 0%; width: 100%;">
+<div class="absolute top-1 left-1.5 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 border border-primary-container/40 font-mono text-[8px] text-primary-container">VIEWPORT ACTIVE</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BOTTOM TRANSPORT & APP NAVIGATION -->
+<footer class="glass-panel rounded-xl px-4 py-2.5 flex flex-col gap-2 border border-outline-variant/60 shadow-xl">
+<!-- Compact Cyber Odyssey Playback Bar -->
+<div class="flex flex-wrap items-center justify-between gap-3">
+<!-- Transport Buttons -->
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 rounded-lg bg-surface-container-high border border-outline-variant/60 hover:text-primary-fixed flex items-center justify-center transition" id="btn-transport-prev">
+<span class="material-symbols-outlined text-base">skip_previous</span>
+</button>
+<button class="w-9 h-9 rounded-lg bg-primary-container text-on-primary flex items-center justify-center shadow-[0_0_14px_rgba(0,240,255,0.4)] hover:brightness-110 transition" id="btn-transport-play">
+<span class="material-symbols-outlined text-lg" id="transport-play-icon">pause</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-surface-container-high border border-outline-variant/60 hover:text-primary-fixed flex items-center justify-center transition" id="btn-transport-next">
+<span class="material-symbols-outlined text-base">skip_next</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-surface-container-high border border-secondary-container/50 text-secondary-container hover:bg-secondary-container/20 flex items-center justify-center transition">
+<span class="material-symbols-outlined text-base">fiber_manual_record</span>
+</button>
+</div>
+<!-- Scrub Timeline Bar -->
+<div class="flex-1 max-w-xl mx-2 flex items-center gap-2.5 font-mono text-[11px]">
+<span class="text-on-surface-variant text-[10px]" id="current-time">01:24</span>
+<div class="flex-1 h-2 bg-surface-container-lowest border border-outline-variant/50 rounded-full relative cursor-pointer overflow-hidden" id="timeline-scrub">
+<div class="h-full bg-gradient-to-r from-primary-container to-secondary-container rounded-full" id="timeline-progress" style="width: 42%;"></div>
+</div>
+<span class="text-on-surface-variant text-[10px]">03:48</span>
+</div>
+<!-- Master Output Meter -->
+<div class="flex items-center gap-2 font-mono text-[10px]">
+<span class="text-on-surface-variant uppercase">OUTPUT:</span>
+<div class="w-20 sm:w-28 h-2 bg-surface-container-lowest border border-outline-variant/60 rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-emerald-400 via-primary-container to-secondary-container transition-all duration-75" id="footer-master-vu" style="width: 74%;"></div>
+</div>
+<span class="text-primary-fixed font-bold">-0.8 dB</span>
+</div>
+</div>
+<!-- Bottom Navigation Bar Tabs -->
+<nav class="flex items-center justify-center gap-1 sm:gap-2 pt-1 border-t border-outline-variant/30 font-headline text-xs font-semibold">
+<a class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-sm">album</span>
+<span class="hidden sm:inline">Now Playing</span>
+</a>
+<a class="px-3 py-1.5 rounded-lg bg-primary-container/15 text-primary-container border border-primary-container/40 flex items-center gap-1.5 shadow-[0_0_10px_rgba(0,240,255,0.2)]" href="#">
+<span class="material-symbols-outlined text-sm">tune</span>
+<span>Mix Pad / Track EQ</span>
+</a>
+<a class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-sm">spatial_audio</span>
+<span class="hidden sm:inline">Dolby Atmos</span>
+</a>
+<a class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-sm">grid_view</span>
+<span class="hidden sm:inline">Master Mix &amp; Stems</span>
+</a>
+<a class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-sm">settings</span>
+<span class="hidden sm:inline">Config</span>
+</a>
+</nav>
+</footer>
+<!-- JAVASCRIPT LOGIC -->
+<script>
+    (function () {
+      // Color presets for bands
+      const COLOR_PALETTE = [
+        { name: 'Neon Pink/Red', hex: '#ff2a85' },
+        { name: 'Neon Green', hex: '#39ff14' },
+        { name: 'Neon Cyan', hex: '#00f0ff' },
+        { name: 'Electric Purple', hex: '#b55fe6' },
+        { name: 'Amber Gold', hex: '#ffb300' },
+        { name: 'Sky Blue', hex: '#38bdf8' }
+      ];
+
+      // Initial 5 Bands data
+      let bands = [
+        { id: 1, name: 'Sub Bass', color: '#ff2a85', bypassed: false, locked: false, isSolo: false, lcr: 'Stereo', filter: 'Peaking Band', gain: 3.5, freq: 62, q: 1.2 },
+        { id: 2, name: 'Low-Mid Punch', color: '#39ff14', bypassed: false, locked: false, isSolo: false, lcr: 'Center/Mid (C)', filter: 'Peaking Band', gain: -2.0, freq: 240, q: 1.8 },
+        { id: 3, name: 'Mid Notch', color: '#00f0ff', bypassed: false, locked: false, isSolo: false, lcr: 'Stereo', filter: 'Band Pass', gain: -4.5, freq: 1200, q: 3.5 },
+        { id: 4, name: 'Presence', color: '#b55fe6', bypassed: false, locked: false, isSolo: false, lcr: 'Side (S)', filter: 'High Shelf', gain: 2.8, freq: 4800, q: 1.4 },
+        { id: 5, name: 'High Air', color: '#ffb300', bypassed: false, locked: false, isSolo: false, lcr: 'Stereo', filter: 'High Pass', gain: 4.2, freq: 12500, q: 0.8 }
+      ];
+
+      let masterGainDb = 0.0;
+      let globalBypass = false;
+      let isPlaying = true;
+
+      // Real-Time Solo Audition State
+      let soloAuditionActive = false;
+      let soloAuditionFreq = 1200;
+      let soloAuditionQ = 3.5;
+      let soloHoverActive = false;
+
+      // Filter icons mapping
+      const filterIcons = {
+        'Peaking Band': 'show_chart',
+        'Low Pass': 'arrow_downward',
+        'High Pass': 'arrow_upward',
+        'Band Pass': 'filter_alt',
+        'Low Shelf': 'call_received',
+        'High Shelf': 'call_made'
+      };
+
+      const bandsContainer = document.getElementById('bands-scroll-container');
+      const activeBandCountEl = document.getElementById('active-band-count');
+      const btnGlobalSoloToggle = document.getElementById('btn-global-solo-toggle');
+      const soloStatusText = document.getElementById('solo-preview-status-text');
+      const soloIndicatorPill = document.getElementById('solo-indicator-pill');
+      const soloLiveHzText = document.getElementById('solo-live-hz-text');
+      const soloMarkerOverlay = document.getElementById('solo-marker-overlay');
+      const soloMarkerFreq = document.getElementById('solo-marker-freq');
+
+      // Helper to format Hz / kHz
+      function formatFreq(f) {
+        if (f >= 1000) {
+          const val = (f / 1000).toFixed(1);
+          return val.endsWith('.0') ? `${Math.round(f/1000)} kHz` : `${val} kHz`;
+        }
+        return `${Math.round(f)} Hz`;
+      }
+
+      function parseFreq(str) {
+        const cleaned = str.trim().toLowerCase();
+        if (cleaned.includes('k')) {
+          const num = parseFloat(cleaned.replace('k', '').replace('hz', ''));
+          return isNaN(num) ? 1000 : Math.max(20, Math.min(20000, num * 1000));
+        }
+        const num = parseFloat(cleaned.replace('hz', ''));
+        return isNaN(num) ? 100 : Math.max(20, Math.min(20000, num));
+      }
+
+      function parseGain(str) {
+        const cleaned = str.replace('db', '').replace('+', '').trim();
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? 0 : Math.max(-15, Math.min(15, num));
+      }
+
+      function parseQ(str) {
+        const cleaned = str.toLowerCase().replace('q', '').trim();
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? 1.0 : Math.max(0.2, Math.min(18.0, num));
+      }
+
+      // Convert Freq to Logarithmic knob angle & vice-versa
+      function freqToAngle(f) {
+        const minLog = Math.log10(20);
+        const maxLog = Math.log10(20000);
+        const norm = (Math.log10(f) - minLog) / (maxLog - minLog);
+        return -135 + norm * 270;
+      }
+
+      function angleToFreq(angle) {
+        const clampedAngle = Math.max(-135, Math.min(135, angle));
+        const norm = (clampedAngle + 135) / 270;
+        const minLog = Math.log10(20);
+        const maxLog = Math.log10(20000);
+        return Math.pow(10, minLog + norm * (maxLog - minLog));
+      }
+
+      // Convert Q to knob angle
+      function qToAngle(q) {
+        const norm = (Math.log10(q) - Math.log10(0.2)) / (Math.log10(18) - Math.log10(0.2));
+        return -135 + Math.max(0, Math.min(1, norm)) * 270;
+      }
+
+      function angleToQ(angle) {
+        const clampedAngle = Math.max(-135, Math.min(135, angle));
+        const norm = (clampedAngle + 135) / 270;
+        const minLog = Math.log10(0.2);
+        const maxLog = Math.log10(18);
+        return Math.pow(10, minLog + norm * (maxLog - minLog));
+      }
+
+      // Update solo status UI
+      function updateSoloUI() {
+        if (soloAuditionActive || soloHoverActive) {
+          btnGlobalSoloToggle.classList.add('border-primary-container', 'bg-primary-container/20', 'text-primary-container');
+          btnGlobalSoloToggle.classList.remove('border-outline-variant/60', 'text-on-surface-variant');
+          soloStatusText.textContent = `SOLO: ${formatFreq(soloAuditionFreq)}`;
+          soloIndicatorPill.style.display = 'flex';
+          soloLiveHzText.textContent = `AUDITION SOLO: ${formatFreq(soloAuditionFreq)} (Q: ${soloAuditionQ.toFixed(2)})`;
+        } else {
+          btnGlobalSoloToggle.classList.remove('border-primary-container', 'bg-primary-container/20', 'text-primary-container');
+          btnGlobalSoloToggle.classList.add('border-outline-variant/60', 'text-on-surface-variant');
+          soloStatusText.textContent = 'SOLO PREVIEW: OFF';
+          soloIndicatorPill.style.display = 'none';
+          soloMarkerOverlay.style.opacity = '0';
+        }
+      }
+
+      // RENDER BAND CARDS IN STRIP (TALLER CARDS WITH AI MATCH PRESET & SOLO BUTTONS)
+      function renderBands() {
+        bandsContainer.innerHTML = '';
+        activeBandCountEl.textContent = `${bands.length} BANDS ACTIVE`;
+
+        bands.forEach((band) => {
+          const card = document.createElement('article');
+          // Noticeably taller min-height, roomier padding and distinct spacing
+          card.className = `band-card w-[235px] min-h-[350px] shrink-0 rounded-xl p-3.5 flex flex-col justify-between gap-3 ${band.bypassed ? 'is-bypassed' : ''} ${band.locked ? 'is-locked' : ''} ${band.isSolo ? 'is-solo-active' : ''}`;
+          card.dataset.bandId = band.id;
+
+          card.innerHTML = `
+            <!-- Header: Band tag, color picker, lock, solo listen, copy, delete, bypass -->
+            <div class="flex items-center justify-between gap-1 border-b border-outline-variant/30 pb-2">
+              <div class="flex items-center gap-1.5">
+                <button type="button" class="color-picker-btn w-3.5 h-3.5 rounded-full border border-white/50 transition hover:scale-125" style="background-color: ${band.color}; box-shadow: 0 0 8px ${band.color};" title="Click to cycle band color"></button>
+                <span class="font-headline font-bold text-xs tracking-wider text-primary">BAND 0${band.id}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <!-- Band Solo Audition Button -->
+                <button type="button" data-action="solo" class="w-6 h-6 rounded flex items-center justify-center text-xs transition ${band.isSolo ? 'text-primary-container bg-primary-container/25 shadow-[0_0_8px_#00f0ff]' : 'text-on-surface-variant hover:text-primary-container'}" title="${band.isSolo ? 'Unsolo Band' : 'Solo Listen (Audition this frequency band)'}">
+                  <span class="material-symbols-outlined text-[15px]">headphones</span>
+                </button>
+                <button type="button" data-action="lock" class="w-6 h-6 rounded flex items-center justify-center text-xs transition ${band.locked ? 'text-amber-400 bg-amber-400/20' : 'text-on-surface-variant hover:text-on-surface'}" title="${band.locked ? 'Unlock Band' : 'Lock Band'}">
+                  <span class="material-symbols-outlined text-[15px]">${band.locked ? 'lock' : 'lock_open'}</span>
+                </button>
+                <button type="button" data-action="copy" class="w-6 h-6 rounded flex items-center justify-center text-on-surface-variant hover:text-primary transition" title="Duplicate/Copy Band">
+                  <span class="material-symbols-outlined text-[15px]">content_copy</span>
+                </button>
+                <button type="button" data-action="delete" class="w-6 h-6 rounded flex items-center justify-center text-on-surface-variant hover:text-error transition" title="Delete Band">
+                  <span class="material-symbols-outlined text-[15px]">delete</span>
+                </button>
+                <button type="button" data-action="bypass" class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase transition border ${band.bypassed ? 'bg-secondary-container/20 border-secondary-container text-secondary' : 'bg-surface-container-lowest border-outline-variant/50 text-on-surface-variant hover:text-on-surface'}" title="Bypass this band">
+                  ${band.bypassed ? 'OFF' : 'ON'}
+                </button>
+              </div>
+            </div>
+
+            <!-- Autonomous AI EQ-Match Preset Button on Band -->
+            <div class="flex items-center gap-1.5">
+              <button type="button" data-action="ai-band-match" class="ai-match-btn flex-1 py-1 px-2 rounded-lg bg-surface-container-lowest border border-tertiary-fixed-dim/40 hover:border-primary-container text-tertiary-fixed-dim hover:text-primary text-[10px] font-mono font-semibold flex items-center justify-between transition group shadow-sm">
+                <span class="flex items-center gap-1">
+                  <span class="material-symbols-outlined text-xs text-primary-container group-hover:rotate-12 transition-transform">auto_awesome</span>
+                  <span>AI MATCH</span>
+                </span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-tertiary-container/15 text-primary-fixed border border-tertiary-fixed-dim/30 group-hover:bg-primary-container/20">AUTO TUNE</span>
+              </button>
+            </div>
+
+            <!-- Selectors: Stereo Placement (LCR) & Filter Type -->
+            <div class="grid grid-cols-2 gap-1.5 font-mono text-[10px]">
+              <!-- LCR Selector Dropdown -->
+              <div class="relative">
+                <select data-field="lcr" class="w-full bg-surface-container-lowest border border-outline-variant/60 rounded px-1.5 py-1 text-primary-fixed text-[10px] font-mono focus:outline-none focus:border-primary-container appearance-none cursor-pointer">
+                  <option value="Stereo" ${band.lcr === 'Stereo' ? 'selected' : ''}>Stereo</option>
+                  <option value="Left (L)" ${band.lcr === 'Left (L)' ? 'selected' : ''}>Left (L)</option>
+                  <option value="Center/Mid (C)" ${band.lcr === 'Center/Mid (C)' ? 'selected' : ''}>Mid / C</option>
+                  <option value="Right (R)" ${band.lcr === 'Right (R)' ? 'selected' : ''}>Right (R)</option>
+                  <option value="Side (S)" ${band.lcr === 'Side (S)' ? 'selected' : ''}>Side (S)</option>
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-xs text-on-surface-variant">arrow_drop_down</span>
+              </div>
+
+              <!-- Filter Type Selector Dropdown -->
+              <div class="relative">
+                <select data-field="filter" class="w-full bg-surface-container-lowest border border-outline-variant/60 rounded pl-1.5 pr-4 py-1 text-on-surface text-[10px] font-mono focus:outline-none focus:border-primary-container appearance-none cursor-pointer">
+                  <option value="Peaking Band" ${band.filter === 'Peaking Band' ? 'selected' : ''}>Peak</option>
+                  <option value="Low Shelf" ${band.filter === 'Low Shelf' ? 'selected' : ''}>LoShelf</option>
+                  <option value="High Shelf" ${band.filter === 'High Shelf' ? 'selected' : ''}>HiShelf</option>
+                  <option value="High Pass" ${band.filter === 'High Pass' ? 'selected' : ''}>HighPass</option>
+                  <option value="Low Pass" ${band.filter === 'Low Pass' ? 'selected' : ''}>LowPass</option>
+                  <option value="Band Pass" ${band.filter === 'Band Pass' ? 'selected' : ''}>BandPass</option>
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-xs text-on-surface-variant">${filterIcons[band.filter] || 'show_chart'}</span>
+              </div>
+            </div>
+
+            <!-- Controls: Band Vertical Gain Slider (Generous Height) + Frequency & Q Knobs -->
+            <div class="flex items-center justify-between gap-3 py-2 bg-surface-container-lowest/60 rounded-lg p-2.5 border border-outline-variant/30 flex-1">
+              
+              <!-- Band Gain Vertical Mini-Slider (Taller 140px slider for fine precision) -->
+              <div class="flex flex-col items-center gap-1.5">
+                <span class="font-mono text-[9px] text-on-surface-variant tracking-wider">GAIN</span>
+                <div class="relative h-36 flex items-center justify-center">
+                  <!-- Track -->
+                  <div class="band-gain-track v-slider-track h-36 w-2 bg-surface-container-high rounded-full relative cursor-pointer" data-band-gain-track="${band.id}">
+                    <div class="band-gain-fill v-slider-fill" style="background:${band.color}; top:${band.gain >= 0 ? 50 - (band.gain/15)*50 : 50}%; height:${Math.abs(band.gain/15)*50}%;"></div>
+                    <div class="band-gain-thumb v-slider-thumb w-3.5 h-2" style="background:${band.color}; bottom:${50 + (band.gain/15)*50}%;"></div>
+                  </div>
+                </div>
+                <!-- Editable Gain Input -->
+                <input type="text" data-band-gain-input="${band.id}" value="${band.gain > 0 ? '+' : ''}${band.gain.toFixed(1)} dB" class="val-pill w-14 text-center text-[10px] font-mono font-bold bg-surface-container-lowest border border-outline-variant/60 rounded py-0.5 text-primary-fixed focus:outline-none focus:border-primary-container" title="Click to edit Gain (-15 to +15 dB)">
+              </div>
+
+              <!-- Frequency & Q Rotary Knobs Column (Generous space & large touch knobs) -->
+              <div class="flex flex-col gap-3.5 flex-1 pl-1 items-center justify-around h-full">
+                <!-- Frequency Knob & Editable Text -->
+                <div class="flex items-center justify-between w-full">
+                  <div class="flex flex-col">
+                    <span class="font-mono text-[9px] text-on-surface-variant">FREQ</span>
+                    <input type="text" data-band-freq-input="${band.id}" value="${formatFreq(band.freq)}" class="val-pill w-16 text-[10px] font-mono font-bold bg-transparent border-b border-outline-variant/60 text-primary-container focus:outline-none focus:border-primary-container text-left" title="Click to edit Freq (Hz / kHz)">
+                  </div>
+                  <div class="rotary-knob freq-knob" data-knob-freq="${band.id}" style="--knob-angle: ${freqToAngle(band.freq)}deg;" title="Drag left/right or up/down to adjust Frequency"></div>
+                </div>
+
+                <!-- Q-Factor Knob & Editable Text -->
+                <div class="flex items-center justify-between w-full">
+                  <div class="flex flex-col">
+                    <span class="font-mono text-[9px] text-on-surface-variant">Q (RES)</span>
+                    <input type="text" data-band-q-input="${band.id}" value="Q ${band.q.toFixed(2)}" class="val-pill w-16 text-[10px] font-mono font-bold bg-transparent border-b border-outline-variant/60 text-secondary focus:outline-none focus:border-primary-container text-left" title="Click to edit Q factor">
+                  </div>
+                  <div class="rotary-knob q-knob" data-knob-q="${band.id}" style="--knob-angle: ${qToAngle(band.q)}deg;" title="Drag left/right or up/down to adjust Q-Factor"></div>
+                </div>
+              </div>
+
+            </div>
+          `;
+
+          bandsContainer.appendChild(card);
+          attachBandCardEvents(card, band);
+        });
+
+        updateViewportIndicator();
+      }
+
+      // ATTACH CARD EVENTS
+      function attachBandCardEvents(card, band) {
+        // Color Picker Click: Cycle next color
+        const colorBtn = card.querySelector('.color-picker-btn');
+        colorBtn.addEventListener('click', () => {
+          const currentIdx = COLOR_PALETTE.findIndex(c => c.hex === band.color);
+          const next = COLOR_PALETTE[(currentIdx + 1) % COLOR_PALETTE.length];
+          band.color = next.hex;
+          colorBtn.style.backgroundColor = band.color;
+          colorBtn.style.boxShadow = `0 0 8px ${band.color}`;
+          const fill = card.querySelector('.band-gain-fill');
+          const thumb = card.querySelector('.band-gain-thumb');
+          if (fill) fill.style.background = band.color;
+          if (thumb) thumb.style.background = band.color;
+        });
+
+        // Solo Audition button per band
+        const soloBtn = card.querySelector('[data-action="solo"]');
+        soloBtn.addEventListener('click', () => {
+          band.isSolo = !band.isSolo;
+          // Unsolo others if single solo mode
+          bands.forEach(b => { if (b.id !== band.id) b.isSolo = false; });
+          soloAuditionActive = band.isSolo;
+          if (soloAuditionActive) {
+            soloAuditionFreq = band.freq;
+            soloAuditionQ = band.q;
+          }
+          renderBands();
+          updateSoloUI();
+        });
+
+        // AI Match Button per band
+        const aiMatchBtn = card.querySelector('[data-action="ai-band-match"]');
+        aiMatchBtn.addEventListener('click', () => {
+          if (band.locked) return;
+          aiMatchBtn.classList.add('animate-pulse');
+          setTimeout(() => {
+            aiMatchBtn.classList.remove('animate-pulse');
+            // Calculate autonomous targeted frequency adjustment
+            if (band.freq < 150) {
+              band.gain = 2.4;
+              band.q = 1.1;
+              band.filter = 'Peaking Band';
+            } else if (band.freq < 800) {
+              band.gain = -3.2;
+              band.q = 2.4;
+              band.filter = 'Peaking Band';
+            } else if (band.freq < 4000) {
+              band.gain = 1.8;
+              band.q = 1.6;
+              band.filter = 'Peaking Band';
+            } else {
+              band.gain = 3.6;
+              band.q = 0.9;
+              band.filter = 'High Shelf';
+            }
+            renderBands();
+          }, 350);
+        });
+
+        // Utility Buttons
+        const lockBtn = card.querySelector('[data-action="lock"]');
+        lockBtn.addEventListener('click', () => {
+          band.locked = !band.locked;
+          renderBands();
+        });
+
+        const bypassBtn = card.querySelector('[data-action="bypass"]');
+        bypassBtn.addEventListener('click', () => {
+          band.bypassed = !band.bypassed;
+          card.classList.toggle('is-bypassed', band.bypassed);
+          bypassBtn.textContent = band.bypassed ? 'OFF' : 'ON';
+          bypassBtn.className = `px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase transition border ${band.bypassed ? 'bg-secondary-container/20 border-secondary-container text-secondary' : 'bg-surface-container-lowest border-outline-variant/50 text-on-surface-variant hover:text-on-surface'}`;
+        });
+
+        const copyBtn = card.querySelector('[data-action="copy"]');
+        copyBtn.addEventListener('click', () => {
+          const newBand = {
+            ...band,
+            id: bands.length + 1,
+            isSolo: false,
+            freq: Math.min(18000, band.freq * 1.5)
+          };
+          bands.push(newBand);
+          renderBands();
+        });
+
+        const deleteBtn = card.querySelector('[data-action="delete"]');
+        deleteBtn.addEventListener('click', () => {
+          if (bands.length <= 1) return;
+          bands = bands.filter(b => b.id !== band.id);
+          bands.forEach((b, i) => b.id = i + 1);
+          renderBands();
+        });
+
+        // Dropdowns
+        const lcrSelect = card.querySelector('[data-field="lcr"]');
+        lcrSelect.addEventListener('change', (e) => {
+          band.lcr = e.target.value;
+        });
+
+        const filterSelect = card.querySelector('[data-field="filter"]');
+        filterSelect.addEventListener('change', (e) => {
+          band.filter = e.target.value;
+        });
+
+        // Editable Inputs with Enter / Blur support
+        const gainInput = card.querySelector(`[data-band-gain-input="${band.id}"]`);
+        gainInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') gainInput.blur();
+        });
+        gainInput.addEventListener('change', () => {
+          if (band.locked) return;
+          const val = parseGain(gainInput.value);
+          band.gain = val;
+          updateBandGainVisuals(card, band);
+        });
+
+        const freqInput = card.querySelector(`[data-band-freq-input="${band.id}"]`);
+        freqInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') freqInput.blur();
+        });
+        freqInput.addEventListener('change', () => {
+          if (band.locked) return;
+          band.freq = parseFreq(freqInput.value);
+          freqInput.value = formatFreq(band.freq);
+          const freqKnob = card.querySelector(`[data-knob-freq="${band.id}"]`);
+          freqKnob.style.setProperty('--knob-angle', `${freqToAngle(band.freq)}deg`);
+        });
+
+        const qInput = card.querySelector(`[data-band-q-input="${band.id}"]`);
+        qInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') qInput.blur();
+        });
+        qInput.addEventListener('change', () => {
+          if (band.locked) return;
+          band.q = parseQ(qInput.value);
+          qInput.value = `Q ${band.q.toFixed(2)}`;
+          const qKnob = card.querySelector(`[data-knob-q="${band.id}"]`);
+          qKnob.style.setProperty('--knob-angle', `${qToAngle(band.q)}deg`);
+        });
+
+        // Band Gain Vertical Slider Drag
+        const gainTrack = card.querySelector(`[data-band-gain-track="${band.id}"]`);
+        let isDraggingGain = false;
+
+        function setGainFromPointer(clientY) {
+          if (band.locked) return;
+          const rect = gainTrack.getBoundingClientRect();
+          const normY = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+          const db = 15 - normY * 30;
+          band.gain = Math.round(db * 10) / 10;
+          updateBandGainVisuals(card, band);
+        }
+
+        gainTrack.addEventListener('pointerdown', (e) => {
+          if (band.locked) return;
+          isDraggingGain = true;
+          gainTrack.setPointerCapture(e.pointerId);
+          setGainFromPointer(e.clientY);
+        });
+        gainTrack.addEventListener('pointermove', (e) => {
+          if (isDraggingGain) setGainFromPointer(e.clientY);
+        });
+        gainTrack.addEventListener('pointerup', () => { isDraggingGain = false; });
+        gainTrack.addEventListener('pointercancel', () => { isDraggingGain = false; });
+
+        // Frequency Knob Drag
+        const freqKnob = card.querySelector(`[data-knob-freq="${band.id}"]`);
+        setupKnobDrag(freqKnob, () => freqToAngle(band.freq), (newAngle) => {
+          if (band.locked) return;
+          band.freq = angleToFreq(newAngle);
+          freqKnob.style.setProperty('--knob-angle', `${newAngle}deg`);
+          freqInput.value = formatFreq(band.freq);
+          if (band.isSolo) {
+            soloAuditionFreq = band.freq;
+            updateSoloUI();
+          }
+        });
+
+        // Q Knob Drag
+        const qKnob = card.querySelector(`[data-knob-q="${band.id}"]`);
+        setupKnobDrag(qKnob, () => qToAngle(band.q), (newAngle) => {
+          if (band.locked) return;
+          band.q = angleToQ(newAngle);
+          qKnob.style.setProperty('--knob-angle', `${newAngle}deg`);
+          qInput.value = `Q ${band.q.toFixed(2)}`;
+          if (band.isSolo) {
+            soloAuditionQ = band.q;
+            updateSoloUI();
+          }
+        });
+      }
+
+      function updateBandGainVisuals(card, band) {
+        const fill = card.querySelector('.band-gain-fill');
+        const thumb = card.querySelector('.band-gain-thumb');
+        const input = card.querySelector(`[data-band-gain-input="${band.id}"]`);
+
+        const pct = (band.gain / 15) * 50; // -50% to +50%
+        if (band.gain >= 0) {
+          fill.style.top = `${50 - pct}%`;
+          fill.style.height = `${pct}%`;
+        } else {
+          fill.style.top = `50%`;
+          fill.style.height = `${Math.abs(pct)}%`;
+        }
+        thumb.style.bottom = `${50 + pct}%`;
+        input.value = `${band.gain > 0 ? '+' : ''}${band.gain.toFixed(1)} dB`;
+      }
+
+      // Generic Knob Drag Handler
+      function setupKnobDrag(el, getStartAngle, onAngleChange) {
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let baseAngle = 0;
+
+        el.addEventListener('pointerdown', (e) => {
+          isDragging = true;
+          startX = e.clientX;
+          startY = e.clientY;
+          baseAngle = getStartAngle();
+          el.classList.add('is-dragging');
+          el.setPointerCapture(e.pointerId);
+          e.preventDefault();
+        });
+
+        el.addEventListener('pointermove', (e) => {
+          if (!isDragging) return;
+          const delta = (startX - e.clientX) * 0.8 + (startY - e.clientY) * 1.2;
+          const newAngle = Math.max(-135, Math.min(135, baseAngle + delta));
+          onAngleChange(newAngle);
+        });
+
+        const stop = () => {
+          if (isDragging) {
+            isDragging = false;
+            el.classList.remove('is-dragging');
+          }
+        };
+        el.addEventListener('pointerup', stop);
+        el.addEventListener('pointercancel', stop);
+      }
+
+      // MASTER GAIN SLIDER DRAG LOGIC
+      const masterTrack = document.getElementById('master-gain-track');
+      const masterThumb = document.getElementById('master-gain-thumb');
+      const masterFill = document.getElementById('master-gain-fill');
+      const masterInput = document.getElementById('master-gain-input');
+      let isDraggingMaster = false;
+
+      function updateMasterGainDisplay() {
+        const pct = (masterGainDb / 18) * 50;
+        if (masterGainDb >= 0) {
+          masterFill.style.top = `${50 - pct}%`;
+          masterFill.style.height = `${pct}%`;
+        } else {
+          masterFill.style.top = `50%`;
+          masterFill.style.height = `${Math.abs(pct)}%`;
+        }
+        masterThumb.style.bottom = `${50 + pct}%`;
+        if (document.activeElement !== masterInput) {
+          masterInput.value = `${masterGainDb > 0 ? '+' : ''}${masterGainDb.toFixed(1)} dB`;
+        }
+      }
+
+      function setMasterGainFromClientY(clientY) {
+        const rect = masterTrack.getBoundingClientRect();
+        const normY = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+        const db = 18 - normY * 36;
+        masterGainDb = Math.round(db * 10) / 10;
+        updateMasterGainDisplay();
+      }
+
+      masterTrack.addEventListener('pointerdown', (e) => {
+        isDraggingMaster = true;
+        masterTrack.setPointerCapture(e.pointerId);
+        setMasterGainFromClientY(e.clientY);
+      });
+      masterTrack.addEventListener('pointermove', (e) => {
+        if (isDraggingMaster) setMasterGainFromClientY(e.clientY);
+      });
+      masterTrack.addEventListener('pointerup', () => { isDraggingMaster = false; });
+      masterTrack.addEventListener('pointercancel', () => { isDraggingMaster = false; });
+
+      masterInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') masterInput.blur();
+      });
+      masterInput.addEventListener('change', () => {
+        const num = parseFloat(masterInput.value.replace('db', '').replace('+', '').trim());
+        masterGainDb = isNaN(num) ? 0 : Math.max(-18, Math.min(18, num));
+        updateMasterGainDisplay();
+      });
+
+      // ADD BAND BUTTON
+      document.getElementById('btn-add-band').addEventListener('click', () => {
+        const nextColor = COLOR_PALETTE[bands.length % COLOR_PALETTE.length].hex;
+        const newBand = {
+          id: bands.length + 1,
+          name: `Band 0${bands.length + 1}`,
+          color: nextColor,
+          bypassed: false,
+          locked: false,
+          isSolo: false,
+          lcr: 'Stereo',
+          filter: 'Peaking Band',
+          gain: 1.5,
+          freq: Math.min(18000, 100 * Math.pow(2.2, bands.length)),
+          q: 1.4
+        };
+        bands.push(newBand);
+        renderBands();
+        setTimeout(() => {
+          bandsContainer.scrollLeft = bandsContainer.scrollWidth;
+        }, 50);
+      });
+
+      // QUICK ACTIONS (Top Header)
+      const btnGlobalBypass = document.getElementById('btn-global-bypass');
+      btnGlobalBypass.addEventListener('click', () => {
+        globalBypass = !globalBypass;
+        btnGlobalBypass.classList.toggle('border-secondary-container', globalBypass);
+        btnGlobalBypass.classList.toggle('text-secondary-container', globalBypass);
+        btnGlobalBypass.classList.toggle('bg-secondary-container/20', globalBypass);
+      });
+
+      const btnResetEq = document.getElementById('btn-reset-eq');
+      btnResetEq.addEventListener('click', () => {
+        if (confirm('Reset all EQ parameters to flat defaults?')) {
+          bands.forEach(b => {
+            b.gain = 0;
+            b.bypassed = false;
+            b.isSolo = false;
+          });
+          masterGainDb = 0;
+          soloAuditionActive = false;
+          soloHoverActive = false;
+          updateMasterGainDisplay();
+          renderBands();
+          updateSoloUI();
+        }
+      });
+
+      // Autonomous AI EQ Match preset handler
+      const btnAutoMatch = document.getElementById('btn-auto-match');
+      const aiPresetDropdown = document.getElementById('ai-preset-dropdown');
+
+      function applyAIPreset(profile) {
+        btnAutoMatch.classList.add('animate-pulse');
+        setTimeout(() => {
+          btnAutoMatch.classList.remove('animate-pulse');
+          if (profile === 'vocal') {
+            if (bands[0]) { bands[0].freq = 90; bands[0].gain = -4.5; bands[0].filter = 'High Pass'; }
+            if (bands[1]) { bands[1].freq = 320; bands[1].gain = -2.8; bands[1].q = 2.0; }
+            if (bands[2]) { bands[2].freq = 2800; bands[2].gain = 3.2; bands[2].q = 1.4; }
+            if (bands[3]) { bands[3].freq = 7500; bands[3].gain = -1.5; bands[3].q = 3.8; }
+            if (bands[4]) { bands[4].freq = 14000; bands[4].gain = 3.8; bands[4].filter = 'High Shelf'; }
+          } else if (profile === 'sub') {
+            if (bands[0]) { bands[0].freq = 45; bands[0].gain = 4.2; bands[0].q = 1.3; }
+            if (bands[1]) { bands[1].freq = 180; bands[1].gain = -3.5; bands[1].q = 2.2; }
+            if (bands[2]) { bands[2].freq = 800; bands[2].gain = -1.2; }
+            if (bands[3]) { bands[3].freq = 3500; bands[3].gain = 0.5; }
+            if (bands[4]) { bands[4].freq = 11000; bands[4].gain = -2.0; }
+          } else if (profile === 'demud') {
+            if (bands[0]) { bands[0].gain = 0.5; }
+            if (bands[1]) { bands[1].freq = 260; bands[1].gain = -5.0; bands[1].q = 2.8; }
+            if (bands[2]) { bands[2].freq = 600; bands[2].gain = -2.2; bands[2].q = 1.8; }
+            if (bands[3]) { bands[3].freq = 4200; bands[3].gain = 2.0; }
+            if (bands[4]) { bands[4].gain = 1.5; }
+          } else if (profile === 'air') {
+            if (bands[0]) { bands[0].gain = 0.0; }
+            if (bands[1]) { bands[1].gain = -1.0; }
+            if (bands[2]) { bands[2].gain = 0.8; }
+            if (bands[3]) { bands[3].freq = 6000; bands[3].gain = 3.0; bands[3].q = 1.2; }
+            if (bands[4]) { bands[4].freq = 15000; bands[4].gain = 5.2; bands[4].filter = 'High Shelf'; }
+          } else {
+            bands.forEach((b, i) => {
+              b.gain = Math.sin(i * 1.5) * 2.8;
+            });
+          }
+          renderBands();
+        }, 450);
+      }
+
+      btnAutoMatch.addEventListener('click', () => {
+        applyAIPreset(aiPresetDropdown.value);
+      });
+
+      aiPresetDropdown.addEventListener('change', (e) => {
+        applyAIPreset(e.target.value);
+      });
+
+      // Global Solo Audition Toggle Button
+      btnGlobalSoloToggle.addEventListener('click', () => {
+        soloAuditionActive = !soloAuditionActive;
+        if (!soloAuditionActive) {
+          bands.forEach(b => b.isSolo = false);
+          renderBands();
+        } else {
+          soloAuditionFreq = 1200;
+          soloAuditionQ = 3.5;
+        }
+        updateSoloUI();
+      });
+
+      // SYNCED SCROLLING BETWEEN VISUALIZER & BAND CONTAINER
+      const visWrap = document.getElementById('eq-visualizer-wrap');
+      const viewportIndicator = document.getElementById('vis-viewport-indicator');
+      let isDraggingVisScroll = false;
+      let visStartX = 0;
+      let startScrollLeft = 0;
+
+      function updateViewportIndicator() {
+        const totalScrollable = bandsContainer.scrollWidth;
+        const visibleWidth = bandsContainer.clientWidth;
+        if (totalScrollable <= visibleWidth) {
+          viewportIndicator.style.left = '0%';
+          viewportIndicator.style.width = '100%';
+          return;
+        }
+        const leftPct = (bandsContainer.scrollLeft / totalScrollable) * 100;
+        const widthPct = (visibleWidth / totalScrollable) * 100;
+        viewportIndicator.style.left = `${leftPct}%`;
+        viewportIndicator.style.width = `${widthPct}%`;
+      }
+
+      bandsContainer.addEventListener('scroll', updateViewportIndicator);
+      window.addEventListener('resize', updateViewportIndicator);
+
+      // LIVE REAL-TIME SOLO FREQUENCY PREVIEW / AUDITION ON VISUALIZER
+      function getFreqFromCanvasX(clientX) {
+        const rect = visWrap.getBoundingClientRect();
+        const normX = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        const minLog = Math.log10(20);
+        const maxLog = Math.log10(20000);
+        return Math.pow(10, minLog + normX * (maxLog - minLog));
+      }
+
+      function updateSoloMarkerPosition(clientX) {
+        const rect = visWrap.getBoundingClientRect();
+        const x = Math.max(10, Math.min(rect.width - 10, clientX - rect.left));
+        soloMarkerOverlay.style.left = `${x}px`;
+        soloMarkerOverlay.style.opacity = '1';
+        soloMarkerFreq.textContent = formatFreq(soloAuditionFreq);
+      }
+
+      visWrap.addEventListener('pointerenter', () => {
+        soloHoverActive = true;
+        updateSoloUI();
+      });
+
+      visWrap.addEventListener('pointerleave', () => {
+        soloHoverActive = false;
+        if (!soloAuditionActive) {
+          updateSoloUI();
+        }
+      });
+
+      visWrap.addEventListener('pointerdown', (e) => {
+        // If shift key or right button or clicked specifically for solo, activate solo audition
+        soloAuditionActive = true;
+        soloAuditionFreq = getFreqFromCanvasX(e.clientX);
+        updateSoloMarkerPosition(e.clientX);
+        updateSoloUI();
+
+        // Also initiate horizontal sync scroll if dragging far
+        isDraggingVisScroll = true;
+        visStartX = e.clientX;
+        startScrollLeft = bandsContainer.scrollLeft;
+        visWrap.setPointerCapture(e.pointerId);
+      });
+
+      visWrap.addEventListener('pointermove', (e) => {
+        const f = getFreqFromCanvasX(e.clientX);
+        soloAuditionFreq = f;
+        updateSoloMarkerPosition(e.clientX);
+        if (soloAuditionActive || soloHoverActive) {
+          updateSoloUI();
+        }
+
+        if (!isDraggingVisScroll) return;
+        const deltaX = e.clientX - visStartX;
+        const ratio = bandsContainer.scrollWidth / visWrap.clientWidth;
+        bandsContainer.scrollLeft = startScrollLeft + deltaX * ratio;
+        updateViewportIndicator();
+      });
+
+      const endVisDrag = () => {
+        isDraggingVisScroll = false;
+      };
+      visWrap.addEventListener('pointerup', endVisDrag);
+      visWrap.addEventListener('pointercancel', endVisDrag);
+
+      // LIVE ANIMATED CANVAS VISUALIZER
+      const canvas = document.getElementById('eq-main-canvas');
+      const ctx = canvas.getContext('2d');
+
+      function resizeCanvas() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rect = visWrap.getBoundingClientRect();
+        canvas.width = Math.floor(rect.width * dpr);
+        canvas.height = Math.floor(rect.height * dpr);
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      // Calculation of response at log freq
+      function calcBandGainAtFreq(band, freqHz) {
+        if (band.bypassed || globalBypass) return 0;
+        const f0 = band.freq;
+        const g = band.gain;
+        const q = Math.max(0.2, band.q);
+
+        switch (band.filter) {
+          case 'Peaking Band': {
+            const ratio = freqHz / f0;
+            const diff = Math.log2(ratio);
+            const bw = 1 / q;
+            return g * Math.exp(-(diff * diff) / (2 * bw * bw * 0.5));
+          }
+          case 'Low Shelf': {
+            if (freqHz <= f0) return g;
+            const diff = Math.log2(freqHz / f0);
+            return g * Math.exp(-diff * diff * q * 1.5);
+          }
+          case 'High Shelf': {
+            if (freqHz >= f0) return g;
+            const diff = Math.log2(f0 / freqHz);
+            return g * Math.exp(-diff * diff * q * 1.5);
+          }
+          case 'High Pass': {
+            if (freqHz >= f0) return 0;
+            const octavesBelow = Math.log2(f0 / freqHz);
+            return -octavesBelow * 12;
+          }
+          case 'Low Pass': {
+            if (freqHz <= f0) return 0;
+            const octavesAbove = Math.log2(freqHz / f0);
+            return -octavesAbove * 12;
+          }
+          case 'Band Pass': {
+            const ratio = freqHz / f0;
+            const diff = Math.abs(Math.log2(ratio));
+            return -diff * 18 * q + g * 0.4;
+          }
+          default:
+            return 0;
+        }
+      }
+
+      // Live Render loop
+      function renderVisualizer(now) {
+        const timeSec = now * 0.001;
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const midY = h * 0.5; // 0 dB line
+        const dbScale = (h * 0.4) / 15; // 15 dB headroom mapped to 40% height
+
+        // 1. Grid Lines
+        ctx.strokeStyle = 'rgba(59, 73, 75, 0.35)';
+        ctx.lineWidth = 1;
+        [-12, -6, 0, 6, 12].forEach(db => {
+          const y = midY - db * dbScale;
+          ctx.beginPath();
+          if (db === 0) {
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+            ctx.setLineDash([4, 4]);
+          } else {
+            ctx.strokeStyle = 'rgba(59, 73, 75, 0.3)';
+            ctx.setLineDash([]);
+          }
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        });
+        ctx.setLineDash([]);
+
+        // Vertical Log Frequency Grid Lines (100Hz, 1kHz, 10kHz)
+        [100, 1000, 10000].forEach(f => {
+          const normX = (Math.log10(f) - Math.log10(20)) / (Math.log10(20000) - Math.log10(20));
+          const x = normX * w;
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(59, 73, 75, 0.3)';
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+          ctx.stroke();
+        });
+
+        // 2. Real-Time Solo Preview Audition Bandpass Highlight
+        const isAuditioning = soloAuditionActive || soloHoverActive;
+        if (isAuditioning) {
+          const soloNormX = (Math.log10(soloAuditionFreq) - Math.log10(20)) / (Math.log10(20000) - Math.log10(20));
+          const soloCenterPx = soloNormX * w;
+          const bandWidthPx = Math.max(30, (w * 0.15) / Math.max(0.8, soloAuditionQ));
+
+          // Draw Glowing Bandpass Isolation Window
+          const soloGrad = ctx.createLinearGradient(soloCenterPx - bandWidthPx, 0, soloCenterPx + bandWidthPx, 0);
+          soloGrad.addColorStop(0, 'rgba(0, 240, 255, 0.0)');
+          soloGrad.addColorStop(0.3, 'rgba(0, 240, 255, 0.18)');
+          soloGrad.addColorStop(0.5, 'rgba(0, 240, 255, 0.35)');
+          soloGrad.addColorStop(0.7, 'rgba(0, 240, 255, 0.18)');
+          soloGrad.addColorStop(1, 'rgba(0, 240, 255, 0.0)');
+
+          ctx.fillStyle = soloGrad;
+          ctx.fillRect(soloCenterPx - bandWidthPx, 0, bandWidthPx * 2, h);
+
+          // Center hairline
+          ctx.beginPath();
+          ctx.strokeStyle = '#00f0ff';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([3, 3]);
+          ctx.moveTo(soloCenterPx, 0);
+          ctx.lineTo(soloCenterPx, h);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // 3. Animated Live FFT Spectrum in background
+        if (isPlaying) {
+          const bars = 64;
+          const barW = w / bars;
+          const grad = ctx.createLinearGradient(0, h, 0, 0);
+          grad.addColorStop(0, 'rgba(0, 240, 255, 0.02)');
+          grad.addColorStop(0.6, 'rgba(0, 219, 233, 0.12)');
+          grad.addColorStop(1, 'rgba(255, 42, 133, 0.25)');
+          ctx.fillStyle = grad;
+
+          for (let i = 0; i < bars; i++) {
+            const freqNorm = i / bars;
+            const fHz = Math.pow(10, Math.log10(20) + freqNorm * (Math.log10(20000) - Math.log10(20)));
+            let netGain = 0;
+            bands.forEach(b => { netGain += calcBandGainAtFreq(b, fHz); });
+            const boost = Math.pow(10, netGain / 30);
+
+            // If solo audition is active, attenuate frequencies outside solo focus
+            let soloAttenuation = 1.0;
+            if (isAuditioning) {
+              const octDist = Math.abs(Math.log2(fHz / soloAuditionFreq));
+              soloAttenuation = Math.max(0.12, Math.exp(-octDist * soloAuditionQ * 1.5));
+            }
+
+            const wave = Math.sin(timeSec * 5.2 + i * 0.4) * 0.3 + Math.cos(timeSec * 8.1 - i * 0.6) * 0.25 + 0.45;
+            const barH = Math.max(4, wave * h * 0.65 * (1 - freqNorm * 0.35) * boost * soloAttenuation);
+            ctx.fillRect(i * barW + 1, h - barH, Math.max(1, barW - 2), barH);
+          }
+        }
+
+        // 4. Individual Band Curves (Faint colored curves)
+        bands.forEach(band => {
+          if (band.bypassed || globalBypass) return;
+          ctx.beginPath();
+          ctx.strokeStyle = band.isSolo ? '#00f0ff' : band.color;
+          ctx.lineWidth = band.isSolo ? 2.5 : 1.5;
+          ctx.setLineDash(band.isSolo ? [] : [2, 2]);
+
+          for (let px = 0; px <= w; px += 4) {
+            const normX = px / w;
+            const fHz = Math.pow(10, Math.log10(20) + normX * (Math.log10(20000) - Math.log10(20)));
+            const g = calcBandGainAtFreq(band, fHz);
+            const y = midY - g * dbScale;
+            if (px === 0) ctx.moveTo(px, y);
+            else ctx.lineTo(px, y);
+          }
+          ctx.stroke();
+          ctx.setLineDash([]);
+        });
+
+        // 5. Glowing Master Composite Curve
+        ctx.beginPath();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 12;
+
+        const points = [];
+        for (let px = 0; px <= w; px += 3) {
+          const normX = px / w;
+          const fHz = Math.pow(10, Math.log10(20) + normX * (Math.log10(20000) - Math.log10(20)));
+          let totalDb = masterGainDb;
+          if (!globalBypass) {
+            bands.forEach(b => { totalDb += calcBandGainAtFreq(b, fHz); });
+          }
+          const y = midY - totalDb * dbScale;
+          points.push({ x: px, y });
+          if (px === 0) ctx.moveTo(px, y);
+          else ctx.lineTo(px, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Fill below composite curve
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+        const fillGrad = ctx.createLinearGradient(0, 0, 0, h);
+        fillGrad.addColorStop(0, 'rgba(0, 240, 255, 0.12)');
+        fillGrad.addColorStop(1, 'rgba(0, 240, 255, 0.0)');
+        ctx.fillStyle = fillGrad;
+        ctx.fill();
+
+        // 6. Band Center Node Markers on curve
+        bands.forEach(band => {
+          if (band.bypassed || globalBypass) return;
+          const normX = (Math.log10(band.freq) - Math.log10(20)) / (Math.log10(20000) - Math.log10(20));
+          const cx = normX * w;
+          let nodeDb = masterGainDb;
+          bands.forEach(b => { nodeDb += calcBandGainAtFreq(b, band.freq); });
+          const cy = midY - nodeDb * dbScale;
+
+          // Node circle
+          ctx.beginPath();
+          ctx.arc(cx, cy, band.isSolo ? 8 : 6, 0, Math.PI * 2);
+          ctx.fillStyle = band.color;
+          ctx.fill();
+          ctx.lineWidth = band.isSolo ? 3 : 2;
+          ctx.strokeStyle = band.isSolo ? '#00f0ff' : '#ffffff';
+          ctx.stroke();
+
+          // Band label above node
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '10px JetBrains Mono';
+          ctx.fillText(`0${band.id}${band.isSolo ? ' 🎧' : ''}`, cx - 8, cy - 12);
+        });
+
+        requestAnimationFrame(renderVisualizer);
+      }
+      requestAnimationFrame(renderVisualizer);
+
+      // VU METER & PLAYBACK PULSE SIMULATION
+      const masterVuL = document.getElementById('master-vu-l');
+      const masterVuR = document.getElementById('master-vu-r');
+      const footerVu = document.getElementById('footer-master-vu');
+
+      setInterval(() => {
+        if (!isPlaying) {
+          masterVuL.style.height = '10%';
+          masterVuR.style.height = '10%';
+          footerVu.style.width = '12%';
+          return;
+        }
+        const time = Date.now() * 0.003;
+        const l = 65 + Math.sin(time * 3.1) * 20 + Math.cos(time * 5.4) * 10;
+        const r = 62 + Math.sin(time * 3.3 + 0.4) * 22 + Math.cos(time * 4.9) * 8;
+        masterVuL.style.height = `${Math.min(98, Math.max(15, l))}%`;
+        masterVuR.style.height = `${Math.min(98, Math.max(15, r))}%`;
+        footerVu.style.width = `${Math.min(95, Math.max(20, (l + r) * 0.5))}%`;
+      }, 60);
+
+      // TRANSPORT PLAY / PAUSE
+      const btnPlay = document.getElementById('btn-transport-play');
+      const playIcon = document.getElementById('transport-play-icon');
+      btnPlay.addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        playIcon.textContent = isPlaying ? 'pause' : 'play_arrow';
+      });
+
+      // TIMELINE SCRUB DRAG
+      const timelineScrub = document.getElementById('timeline-scrub');
+      const timelineProgress = document.getElementById('timeline-progress');
+      timelineScrub.addEventListener('click', (e) => {
+        const rect = timelineScrub.getBoundingClientRect();
+        const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        timelineProgress.style.width = `${pct * 100}%`;
+      });
+
+      // INITIAL RENDER
+      renderBands();
+      updateMasterGainDisplay();
+    })();
+  </script>
+</body></html>

@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GTLab AI Powered Audio Mix</title>
+<!-- Tailwind CSS v3 CDN with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Syne & Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Syne:wght@600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<!-- Tailwind Custom Configuration -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['Syne', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            obsidian: '#07090e',
+            cyber: {
+              cyan: '#00f2fe',
+              blue: '#4facfe',
+              purple: '#8a2be2',
+              magenta: '#f72585',
+              violet: '#7209b7',
+              neonGreen: '#10b981'
+            }
+          },
+          boxShadow: {
+            'glow-cyan': '0 0 25px -4px rgba(0, 242, 254, 0.45)',
+            'glow-play': '0 0 35px 2px rgba(0, 242, 254, 0.6), 0 0 70px -10px rgba(114, 9, 183, 0.5)',
+            'glow-magenta': '0 0 25px -4px rgba(247, 37, 133, 0.45)',
+            'inner-glow': 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.15)',
+          },
+          animation: {
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'equalizer': 'equalize 1.2s ease-in-out infinite alternate',
+          },
+          keyframes: {
+            equalize: {
+              '0%': { height: '15%' },
+              '100%': { height: '100%' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom Glassmorphic Styles -->
+<style data-purpose="glass-effects">
+    .glass-panel {
+      background: rgba(13, 17, 28, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.7);
+    }
+    .glass-card {
+      background: rgba(22, 28, 45, 0.45);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .glass-input {
+      background: rgba(8, 11, 20, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .cyber-border-gradient {
+      position: relative;
+    }
+    .cyber-border-gradient::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.6), rgba(138, 43, 226, 0.1), rgba(247, 37, 133, 0.6));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+  </style>
+<style data-purpose="scrollbars-and-visualizer">
+    /* Custom sleek scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(7, 9, 14, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 242, 254, 0.4);
+    }
+    
+    .wave-bar {
+      display: inline-block;
+      width: 3px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, #00f2fe 0%, #7209b7 100%);
+      transform-origin: bottom;
+    }
+  </style>
+<!-- END: Custom Glassmorphic Styles -->
+<meta content="web_standard" name="shell-type"/></head>
+<body class="bg-obsidian text-slate-100 font-sans min-h-screen overflow-x-hidden selection:bg-cyber-cyan selection:text-black">
+<!-- Deep space hypertech ambient background lights -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="absolute -top-40 left-1/4 w-[600px] h-[600px] bg-cyber-purple/15 rounded-full blur-[140px] animate-pulse-slow"></div>
+<div class="absolute top-1/2 -right-40 w-[550px] h-[550px] bg-cyber-cyan/15 rounded-full blur-[150px]"></div>
+<div class="absolute -bottom-32 left-1/3 w-[650px] h-[650px] bg-cyber-magenta/10 rounded-full blur-[160px]"></div>
+<div class="absolute inset-0 bg-[radial-gradient(#1a2236_1px,transparent_1px)] [background-size:32px_32px] opacity-25"></div>
+</div>
+<div class="relative z-10 max-w-7xl mx-auto px-4 py-5 flex flex-col min-h-screen justify-between gap-5">
+<!-- BEGIN: MainHeader -->
+<!-- Represents the top logo, app title and AI engine monitor from sketch -->
+<header class="glass-panel cyber-border-gradient rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-2xl" data-purpose="app-header">
+<div class="flex items-center space-x-4">
+<!-- Logo block as labelled 'LOGO' in sketch -->
+<div class="relative group cursor-pointer flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 via-indigo-600 to-pink-500 p-0.5 shadow-glow-cyan">
+<div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+<span class="font-display font-black text-xl tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-cyber-cyan to-cyber-magenta">GT</span>
+</div>
+<span class="absolute -bottom-1 -right-1 flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-cyan opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-cyber-cyan"></span>
+</span>
+</div>
+<div class="border-l border-white/10 pl-4">
+<!-- Text exact match to sketch: "GTLab AI POWERED AUDIO MIX" -->
+<div class="flex items-center space-x-2">
+<h1 class="font-display font-extrabold tracking-wider text-xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-400">
+              GTLab <span class="bg-clip-text text-transparent bg-gradient-to-r from-cyber-cyan via-purple-400 to-cyber-magenta">AI POWERED</span> AUDIO MIX
+            </h1>
+<span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-widest bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+              v4.2 PRO
+            </span>
+</div>
+<p class="text-xs text-slate-400 font-mono tracking-tight flex items-center gap-2">
+<span>Neural Stem Separation</span>
+<span class="text-white/20">•</span>
+<span>Dolby 7.1.4 Matrix</span>
+<span class="text-white/20">•</span>
+<span class="text-emerald-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Engine Live (32-bit / 96kHz)</span>
+</p>
+</div>
+</div>
+<!-- Live audio telemetry and master output indicators -->
+<div class="flex items-center gap-3">
+<!-- Master output level indicator -->
+<div class="hidden md:flex items-center bg-black/40 border border-white/5 rounded-xl px-3 py-1.5 gap-3">
+<div class="text-right">
+<span class="block text-[9px] uppercase font-mono text-slate-400">Master Out</span>
+<span class="text-xs font-mono font-bold text-cyber-cyan">-0.4 dB</span>
+</div>
+<div class="flex items-end gap-0.5 h-6">
+<span class="w-1 bg-cyber-neonGreen h-2 rounded-t-sm"></span>
+<span class="w-1 bg-cyber-neonGreen h-3.5 rounded-t-sm"></span>
+<span class="w-1 bg-cyber-neonGreen h-5 rounded-t-sm"></span>
+<span class="w-1 bg-cyber-cyan h-4 rounded-t-sm"></span>
+<span class="w-1 bg-amber-400 h-2.5 rounded-t-sm"></span>
+<span class="w-1 bg-rose-500 h-1 rounded-t-sm"></span>
+</div>
+</div>
+<button class="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all flex items-center gap-2" title="Audio Device Preferences">
+<i class="w-4 h-4 text-cyber-cyan" data-lucide="sliders-horizontal"></i>
+<span class="hidden sm:inline">Settings</span>
+</button>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: MainContentArea -->
+<main class="space-y-4 flex-1 flex flex-col justify-center"><div class="flex flex-col w-full">
+<!-- BEGIN: Master Telemetry & Preset Quick Bar -->
+<section class="glass-panel cyber-border-gradient rounded-2xl p-4 mb-4 shadow-xl relative overflow-hidden">
+<div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
+<!-- Preset Selector Strip -->
+<div class="flex items-center gap-2 overflow-x-auto w-full xl:w-auto pb-1 xl:pb-0 scrollbar-none">
+<span class="text-[10px] font-mono uppercase tracking-widest text-slate-400 pl-1 shrink-0 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm text-cyber-cyan">auto_fix_high</span>
+          AI Profile:
+        </span>
+<button class="px-3 py-1.5 rounded-lg text-xs font-mono font-medium bg-gradient-to-r from-cyber-cyan/20 to-cyber-purple/30 text-white shadow-glow-cyan shrink-0 transition-all flex items-center gap-1.5" data-preset="ai-mastering">
+<span class="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-pulse"></span>
+          AI Mastering Pro
+        </button>
+<button class="px-3 py-1.5 rounded-lg text-xs font-mono text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-all shrink-0" data-preset="hyper-bass">
+          Hyper-Bass EDM
+        </button>
+<button class="px-3 py-1.5 rounded-lg text-xs font-mono text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-all shrink-0" data-preset="vocal-air">
+          Vocal Air &amp; Warmth
+        </button>
+<button class="px-3 py-1.5 rounded-lg text-xs font-mono text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-all shrink-0" data-preset="loudness-war">
+          Loudness War -14 LUFS
+        </button>
+<button class="px-3 py-1.5 rounded-lg text-xs font-mono text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-all shrink-0" data-preset="custom-rig">
+          Custom Studio Rig
+        </button>
+</div>
+<!-- Live Broadcast Loudness & Telemetry Counters -->
+<div class="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-between xl:justify-end">
+<div class="flex items-center gap-2 bg-obsidian/70 px-3 py-1.5 rounded-xl shadow-inner-glow">
+<div class="text-right">
+<span class="block text-[8px] uppercase tracking-wider font-mono text-slate-400">Integrated LUFS</span>
+<span class="text-xs font-mono font-bold text-cyber-cyan">-14.1 <span class="text-[9px] text-slate-400">LUFS</span></span>
+</div>
+<div class="h-6 w-px bg-white/10 mx-1"></div>
+<div class="text-right">
+<span class="block text-[8px] uppercase tracking-wider font-mono text-slate-400">True Peak</span>
+<span class="text-xs font-mono font-bold text-emerald-400">-0.1 <span class="text-[9px] text-slate-400">dBTP</span></span>
+</div>
+<div class="h-6 w-px bg-white/10 mx-1"></div>
+<div class="text-right">
+<span class="block text-[8px] uppercase tracking-wider font-mono text-slate-400">Dyn Range</span>
+<span class="text-xs font-mono font-bold text-purple-300">DR 11</span>
+</div>
+</div>
+<!-- Master Toggles -->
+<div class="flex items-center gap-2 shrink-0">
+<button class="px-2.5 py-1.5 rounded-lg text-[11px] font-mono text-slate-300 bg-white/[0.04] hover:bg-rose-500/20 hover:text-rose-300 transition-all flex items-center gap-1.5" id="toggle-bypass" title="Bypass DSP Processing">
+<span class="material-symbols-outlined text-sm text-slate-400">power_settings_new</span>
+<span>Bypass DSP</span>
+</button>
+<button class="px-2.5 py-1.5 rounded-lg text-[11px] font-mono text-cyber-cyan bg-cyan-500/10 hover:bg-cyan-500/20 transition-all flex items-center gap-1" id="toggle-ab" title="A/B Quick Reference">
+<span class="material-symbols-outlined text-sm">compare</span>
+<span>A/B Compare</span>
+</button>
+<div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-cyber-purple/15 text-[11px] font-mono text-purple-300">
+<span class="w-1.5 h-1.5 rounded-full bg-cyber-magenta animate-ping"></span>
+            Linear Phase
+          </div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: Master Telemetry & Preset Quick Bar -->
+<!-- BEGIN: 3-Column Studio Console Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
+<!-- LEFT COLUMN: Dynamic Parametric EQ (AI Smart Curve & 8-Band EQ) -->
+<section class="lg:col-span-5 glass-panel rounded-2xl p-4 flex flex-col justify-between shadow-xl relative overflow-hidden" data-purpose="eq-panel">
+<!-- Glow ambient backdrop -->
+<div class="absolute -top-16 -left-16 w-48 h-48 bg-cyber-cyan/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex items-center justify-between mb-3 relative z-10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-cyber-cyan text-lg">graphic_eq</span>
+<div>
+<h2 class="font-display font-bold text-sm tracking-wide text-white">DYNAMIC PARAMETRIC EQ</h2>
+<p class="text-[10px] font-mono text-slate-400">8-Band AI Smart Filter • Zero-Latency DSP</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[9px] font-mono px-2 py-0.5 rounded bg-cyan-400/10 text-cyan-300 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> Neural Match
+          </span>
+<button class="p-1 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 transition-colors" title="Reset Curve">
+<span class="material-symbols-outlined text-sm">restart_alt</span>
+</button>
+</div>
+</div>
+<!-- Interactive Spectrum Graph -->
+<div class="relative w-full h-52 bg-obsidian/90 rounded-xl overflow-hidden shadow-inner-glow mb-4 p-3 flex flex-col justify-between" id="spectrum-viewport">
+<!-- Frequency grid background lines -->
+<div class="absolute inset-0 flex justify-between pointer-events-none opacity-15 px-6">
+<span class="h-full w-px bg-white"></span>
+<span class="h-full w-px bg-white"></span>
+<span class="h-full w-px bg-white"></span>
+<span class="h-full w-px bg-white"></span>
+<span class="h-full w-px bg-white"></span>
+<span class="h-full w-px bg-white"></span>
+</div>
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-15 py-4">
+<span class="w-full h-px bg-white"></span>
+<span class="w-full h-px bg-white"></span>
+<span class="w-full h-px bg-white"></span>
+</div>
+<!-- Inline Dynamic SVG Frequency Curve -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" preserveaspectratio="none" viewbox="0 0 500 200">
+<defs>
+<lineargradient id="eq-fill-gradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#00f2fe" stop-opacity="0.35"></stop>
+<stop offset="70%" stop-color="#8a2be2" stop-opacity="0.1"></stop>
+<stop offset="100%" stop-color="#07090e" stop-opacity="0"></stop>
+</lineargradient>
+<lineargradient id="eq-line-gradient" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#00f2fe"></stop>
+<stop offset="45%" stop-color="#4facfe"></stop>
+<stop offset="75%" stop-color="#8a2be2"></stop>
+<stop offset="100%" stop-color="#f72585"></stop>
+</lineargradient>
+</defs>
+<!-- Spectrum Analyzer Bars (FFT visualization mockup) -->
+<g class="opacity-25" fill="#4facfe">
+<rect height="60" rx="2" width="8" x="25" y="140"></rect>
+<rect height="90" rx="2" width="8" x="45" y="110"></rect>
+<rect height="110" rx="2" width="8" x="75" y="90"></rect>
+<rect height="120" rx="2" width="8" x="110" y="80"></rect>
+<rect height="130" rx="2" width="8" x="145" y="70"></rect>
+<rect height="105" rx="2" width="8" x="180" y="95"></rect>
+<rect height="140" rx="2" width="8" x="220" y="60"></rect>
+<rect height="115" rx="2" width="8" x="260" y="85"></rect>
+<rect height="95" rx="2" width="8" x="300" y="105"></rect>
+<rect height="125" rx="2" width="8" x="340" y="75"></rect>
+<rect height="80" rx="2" width="8" x="380" y="120"></rect>
+<rect height="55" rx="2" width="8" x="420" y="145"></rect>
+<rect height="35" rx="2" width="8" x="460" y="165"></rect>
+</g>
+<!-- Filled curve area -->
+<path d="M 0,200 L 0,150 Q 50,140 80,105 T 160,85 T 240,110 T 320,70 T 400,95 T 500,120 L 500,200 Z" fill="url(#eq-fill-gradient)"></path>
+<!-- EQ Response stroke -->
+<path d="M 0,150 Q 50,140 80,105 T 160,85 T 240,110 T 320,70 T 400,95 T 500,120" fill="none" filter="drop-shadow(0px 0px 6px rgba(0, 242, 254, 0.8))" stroke="url(#eq-line-gradient)" stroke-width="3"></path>
+</svg>
+<!-- Dynamic Draggable Frequency Nodes -->
+<div class="relative w-full h-full pointer-events-auto">
+<!-- Node 1: Sub -->
+<div class="absolute left-[14%] top-[45%] -translate-x-1/2 -translate-y-1/2 group cursor-grab">
+<span class="w-4 h-4 rounded-full bg-cyber-cyan shadow-glow-cyan flex items-center justify-center text-[8px] font-bold text-black font-mono group-hover:scale-125 transition-transform">1</span>
+<div class="hidden group-hover:flex absolute -top-8 left-1/2 -translate-x-1/2 bg-black/90 px-2 py-0.5 rounded text-[9px] font-mono text-cyan-300 pointer-events-none whitespace-nowrap shadow-md">
+              Sub 48Hz (+3.2dB)
+            </div>
+</div>
+<!-- Node 2: Low-Mid -->
+<div class="absolute left-[31%] top-[38%] -translate-x-1/2 -translate-y-1/2 group cursor-grab">
+<span class="w-4 h-4 rounded-full bg-cyber-blue shadow-glow-cyan flex items-center justify-center text-[8px] font-bold text-black font-mono group-hover:scale-125 transition-transform">2</span>
+<div class="hidden group-hover:flex absolute -top-8 left-1/2 -translate-x-1/2 bg-black/90 px-2 py-0.5 rounded text-[9px] font-mono text-cyan-300 pointer-events-none whitespace-nowrap shadow-md">
+              Low-Mid 240Hz (-1.8dB)
+            </div>
+</div>
+<!-- Node 3: Presence (Active Selected) -->
+<div class="absolute left-[63%] top-[30%] -translate-x-1/2 -translate-y-1/2 group cursor-grab">
+<span class="w-5 h-5 rounded-full bg-cyber-purple shadow-[0_0_15px_#8a2be2] flex items-center justify-center text-[9px] font-bold text-white font-mono scale-110">3</span>
+<div class="absolute -top-7 left-1/2 -translate-x-1/2 bg-cyber-purple/90 px-2 py-0.5 rounded text-[9px] font-mono text-white pointer-events-none whitespace-nowrap">
+              Pres 4.2kHz (+4.5dB)
+            </div>
+</div>
+<!-- Node 4: Air -->
+<div class="absolute left-[82%] top-[42%] -translate-x-1/2 -translate-y-1/2 group cursor-grab">
+<span class="w-4 h-4 rounded-full bg-cyber-magenta shadow-glow-magenta flex items-center justify-center text-[8px] font-bold text-white font-mono group-hover:scale-125 transition-transform">4</span>
+<div class="hidden group-hover:flex absolute -top-8 left-1/2 -translate-x-1/2 bg-black/90 px-2 py-0.5 rounded text-[9px] font-mono text-pink-300 pointer-events-none whitespace-nowrap shadow-md">
+              Air 14.8kHz (+2.0dB)
+            </div>
+</div>
+</div>
+<!-- Frequency Scale Legend -->
+<div class="relative z-10 flex justify-between text-[9px] font-mono text-slate-400 pt-1">
+<span>20 Hz</span>
+<span>100 Hz</span>
+<span>1 kHz</span>
+<span>5 kHz</span>
+<span>10 kHz</span>
+<span>20 kHz</span>
+</div>
+</div>
+<!-- 8-Band Quick Controls & Parametric Rotary Sliders -->
+<div class="grid grid-cols-4 sm:grid-cols-4 gap-2 mb-3">
+<div class="bg-obsidian/50 p-2 rounded-xl flex flex-col items-center justify-center text-center">
+<span class="text-[9px] font-mono text-slate-400 uppercase">Sub 45Hz</span>
+<div class="my-1.5 w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-900/50 to-cyan-500/20 flex items-center justify-center relative shadow-inner">
+<div class="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center">
+<div class="w-1 h-3 bg-cyber-cyan rounded-full -translate-y-1"></div>
+</div>
+</div>
+<span class="text-[10px] font-mono font-bold text-cyber-cyan">+3.5 dB</span>
+</div>
+<div class="bg-obsidian/50 p-2 rounded-xl flex flex-col items-center justify-center text-center">
+<span class="text-[9px] font-mono text-slate-400 uppercase">Mid 800Hz</span>
+<div class="my-1.5 w-10 h-10 rounded-full bg-gradient-to-tr from-blue-900/50 to-blue-500/20 flex items-center justify-center relative shadow-inner">
+<div class="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center">
+<div class="w-1 h-3 bg-cyber-blue rounded-full rotate-45 -translate-y-1"></div>
+</div>
+</div>
+<span class="text-[10px] font-mono font-bold text-slate-200">0.0 dB</span>
+</div>
+<div class="bg-obsidian/50 p-2 rounded-xl flex flex-col items-center justify-center text-center">
+<span class="text-[9px] font-mono text-purple-300 uppercase">Presence 4k</span>
+<div class="my-1.5 w-10 h-10 rounded-full bg-gradient-to-tr from-purple-900/60 to-purple-500/40 flex items-center justify-center relative shadow-inner shadow-cyber-purple/20">
+<div class="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center">
+<div class="w-1 h-3 bg-cyber-purple rounded-full rotate-90 -translate-y-1"></div>
+</div>
+</div>
+<span class="text-[10px] font-mono font-bold text-purple-300">+4.5 dB</span>
+</div>
+<div class="bg-obsidian/50 p-2 rounded-xl flex flex-col items-center justify-center text-center">
+<span class="text-[9px] font-mono text-pink-300 uppercase">Air 16kHz</span>
+<div class="my-1.5 w-10 h-10 rounded-full bg-gradient-to-tr from-pink-900/50 to-pink-500/20 flex items-center justify-center relative shadow-inner">
+<div class="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center">
+<div class="w-1 h-3 bg-cyber-magenta rounded-full rotate-45 -translate-y-1"></div>
+</div>
+</div>
+<span class="text-[10px] font-mono font-bold text-pink-400">+2.2 dB</span>
+</div>
+</div>
+<!-- AI Auto-Balance Action -->
+<div class="flex items-center justify-between pt-2">
+<button class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 hover:from-cyan-500/30 hover:to-pink-500/30 text-white font-mono text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-glow-cyan">
+<span class="material-symbols-outlined text-sm text-cyber-cyan animate-spin" style="animation-duration: 8s;">neurology</span>
+          Auto-EQ Match Spectrum
+        </button>
+</div>
+</section>
+<!-- MIDDLE COLUMN: Pro Dynamic Limiter & Multiband Compressor -->
+<section class="lg:col-span-4 glass-panel rounded-2xl p-4 flex flex-col justify-between shadow-xl relative overflow-hidden" data-purpose="limiter-panel">
+<!-- Glow ambient backdrop -->
+<div class="absolute -top-16 -right-16 w-48 h-48 bg-cyber-purple/15 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex items-center justify-between mb-3 relative z-10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-purple-400 text-lg">compress</span>
+<div>
+<h2 class="font-display font-bold text-sm tracking-wide text-white">MULTIBAND LIMITER</h2>
+<p class="text-[10px] font-mono text-slate-400">Dynamic Transient Clamping • True Peak</p>
+</div>
+</div>
+<span class="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active
+        </span>
+</div>
+<!-- Gain Reduction (GR) Reactive Meter -->
+<div class="bg-obsidian/80 rounded-xl p-3 mb-3 shadow-inner-glow">
+<div class="flex justify-between items-center text-[10px] font-mono mb-1.5">
+<span class="text-slate-400 uppercase tracking-wider flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Gain Reduction (GR)
+          </span>
+<span class="text-rose-400 font-bold">-2.8 dB</span>
+</div>
+<!-- Segmented LED Meter -->
+<div class="w-full bg-black/60 rounded-md p-1 flex items-center gap-0.5">
+<div class="h-3 flex-1 rounded-sm bg-slate-800"></div>
+<div class="h-3 flex-1 rounded-sm bg-slate-800"></div>
+<div class="h-3 flex-1 rounded-sm bg-slate-800"></div>
+<div class="h-3 flex-1 rounded-sm bg-cyan-500/40"></div>
+<div class="h-3 flex-1 rounded-sm bg-cyan-400"></div>
+<div class="h-3 flex-1 rounded-sm bg-cyan-300"></div>
+<div class="h-3 flex-1 rounded-sm bg-purple-400"></div>
+<div class="h-3 flex-1 rounded-sm bg-purple-500"></div>
+<div class="h-3 flex-1 rounded-sm bg-pink-500"></div>
+<div class="h-3 flex-1 rounded-sm bg-rose-500 shadow-[0_0_8px_#f43f5e]"></div>
+<div class="h-3 flex-1 rounded-sm bg-rose-500/20"></div>
+<div class="h-3 flex-1 rounded-sm bg-rose-500/10"></div>
+</div>
+<div class="flex justify-between text-[8px] font-mono text-slate-400 mt-1 px-1">
+<span>0 dB</span>
+<span>-3</span>
+<span>-6</span>
+<span>-12</span>
+<span>-18 dB</span>
+</div>
+</div>
+<!-- Multiband Compression Split Graphic -->
+<div class="grid grid-cols-3 gap-2 mb-3">
+<!-- Low Band -->
+<div class="bg-obsidian/60 p-2.5 rounded-xl flex flex-col justify-between">
+<div class="flex justify-between text-[9px] font-mono mb-1">
+<span class="text-slate-400">LOW</span>
+<span class="text-cyan-400 font-semibold">-1.2dB</span>
+</div>
+<div class="h-16 w-full bg-black/40 rounded-lg p-1 flex items-end justify-center">
+<div class="w-4 bg-gradient-to-t from-cyan-600 to-cyan-400 rounded-t h-[65%]"></div>
+</div>
+<span class="text-[8px] font-mono text-slate-400 text-center mt-1">&lt; 160Hz</span>
+</div>
+<!-- Mid Band -->
+<div class="bg-obsidian/60 p-2.5 rounded-xl flex flex-col justify-between">
+<div class="flex justify-between text-[9px] font-mono mb-1">
+<span class="text-slate-400">MID</span>
+<span class="text-purple-400 font-semibold">-2.4dB</span>
+</div>
+<div class="h-16 w-full bg-black/40 rounded-lg p-1 flex items-end justify-center">
+<div class="w-4 bg-gradient-to-t from-purple-600 to-purple-400 rounded-t h-[80%] shadow-[0_0_10px_#8a2be2]"></div>
+</div>
+<span class="text-[8px] font-mono text-slate-400 text-center mt-1">160 - 4kHz</span>
+</div>
+<!-- High Band -->
+<div class="bg-obsidian/60 p-2.5 rounded-xl flex flex-col justify-between">
+<div class="flex justify-between text-[9px] font-mono mb-1">
+<span class="text-slate-400">HIGH</span>
+<span class="text-pink-400 font-semibold">-0.8dB</span>
+</div>
+<div class="h-16 w-full bg-black/40 rounded-lg p-1 flex items-end justify-center">
+<div class="w-4 bg-gradient-to-t from-pink-600 to-pink-400 rounded-t h-[45%]"></div>
+</div>
+<span class="text-[8px] font-mono text-slate-400 text-center mt-1">&gt; 4kHz</span>
+</div>
+</div>
+<!-- Precision Limiter Faders -->
+<div class="space-y-2 mb-3">
+<!-- Threshold -->
+<div>
+<div class="flex justify-between text-[10px] font-mono mb-0.5">
+<span class="text-slate-400">Threshold</span>
+<span class="text-cyber-cyan font-bold">-3.0 dB</span>
+</div>
+<div class="relative w-full h-2 bg-black/70 rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-cyber-cyan to-cyber-purple w-[72%] rounded-full shadow-glow-cyan"></div>
+</div>
+</div>
+<!-- Ceiling -->
+<div>
+<div class="flex justify-between text-[10px] font-mono mb-0.5">
+<span class="text-slate-400">Ceiling</span>
+<span class="text-emerald-400 font-bold">-0.1 dBTP</span>
+</div>
+<div class="relative w-full h-2 bg-black/70 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-400 w-[96%] rounded-full shadow-[0_0_8px_#10b981]"></div>
+</div>
+</div>
+<!-- Release -->
+<div>
+<div class="flex justify-between text-[10px] font-mono mb-0.5">
+<span class="text-slate-400">Release (Auto-adaptive)</span>
+<span class="text-purple-300 font-bold">45 ms</span>
+</div>
+<div class="relative w-full h-2 bg-black/70 rounded-full overflow-hidden">
+<div class="h-full bg-cyber-purple w-[48%] rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Safety & Oversampling Matrix -->
+<div class="grid grid-cols-2 gap-2 pt-1">
+<label class="flex items-center justify-between p-2 rounded-xl bg-obsidian/40 cursor-pointer hover:bg-obsidian/60 transition-colors">
+<span class="text-[10px] font-mono text-slate-300">True Peak Safety</span>
+<input checked="" class="rounded text-cyan-500 focus:ring-0 bg-slate-900 border-white/10" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between p-2 rounded-xl bg-obsidian/40 cursor-pointer hover:bg-obsidian/60 transition-colors">
+<span class="text-[10px] font-mono text-slate-300">Oversample 8x</span>
+<input checked="" class="rounded text-pink-500 focus:ring-0 bg-slate-900 border-white/10" type="checkbox"/>
+</label>
+</div>
+</section>
+<!-- RIGHT COLUMN: Neural AI DSP & Spatial Harmonic Suite -->
+<section class="lg:col-span-3 glass-panel rounded-2xl p-4 flex flex-col justify-between shadow-xl relative overflow-hidden" data-purpose="dsp-harmonics-panel">
+<!-- Glow ambient backdrop -->
+<div class="absolute -bottom-16 -right-16 w-48 h-48 bg-cyber-magenta/15 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex items-center justify-between mb-3 relative z-10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-cyber-magenta text-lg">psychology</span>
+<div>
+<h2 class="font-display font-bold text-sm tracking-wide text-white">NEURAL AI DSP</h2>
+<p class="text-[10px] font-mono text-slate-400">Harmonics • Stereo Imaging</p>
+</div>
+</div>
+<span class="text-[9px] font-mono px-2 py-0.5 rounded bg-pink-500/10 text-pink-300">
+          96kHz Matrix
+        </span>
+</div>
+<!-- Lissajous Stereo Field / Vectorscope Visualizer -->
+<div class="bg-obsidian/80 rounded-xl p-3 mb-3 shadow-inner-glow flex flex-col items-center justify-center relative overflow-hidden h-36">
+<span class="absolute top-2 left-2 text-[8px] font-mono text-slate-400 tracking-wider">VECTORSCOPE L/R</span>
+<span class="absolute top-2 right-2 text-[8px] font-mono text-cyan-400">WIDTH: 132%</span>
+<!-- Animated Lissajous Figure SVG -->
+<svg class="w-24 h-24 pointer-events-none" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="42" stroke="rgba(255,255,255,0.06)" stroke-width="1"></circle>
+<line stroke="rgba(255,255,255,0.05)" stroke-width="1" x1="50" x2="50" y1="8" y2="92"></line>
+<line stroke="rgba(255,255,255,0.05)" stroke-width="1" x1="8" x2="92" y1="50" y2="50"></line>
+<!-- Dynamic stereo cloud curve -->
+<ellipse class="opacity-80 animate-pulse" cx="50" cy="50" fill="none" rx="34" ry="18" stroke="#00f2fe" stroke-width="1.8" transform="rotate(-35 50 50)"></ellipse>
+<ellipse class="opacity-75" cx="50" cy="50" fill="none" rx="28" ry="12" stroke="#f72585" stroke-width="1.6" transform="rotate(45 50 50)"></ellipse>
+<circle class="shadow-glow-cyan" cx="50" cy="50" fill="#8a2be2" r="3"></circle>
+</svg>
+<div class="w-full flex justify-between text-[8px] font-mono text-slate-400 px-3 mt-1">
+<span>MONO</span>
+<span>CORR: +0.87</span>
+<span>WIDE</span>
+</div>
+</div>
+<!-- AI Harmonic Drive & Tube Saturator -->
+<div class="grid grid-cols-2 gap-2 mb-3">
+<div class="bg-obsidian/50 p-2.5 rounded-xl flex flex-col items-center text-center">
+<span class="text-[9px] font-mono text-slate-300">Tape Warmth</span>
+<div class="my-1.5 w-9 h-9 rounded-full bg-gradient-to-br from-amber-500/20 to-pink-500/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-amber-400 text-sm">waves</span>
+</div>
+<span class="text-[10px] font-mono font-bold text-amber-400">+4.2 dB</span>
+</div>
+<div class="bg-obsidian/50 p-2.5 rounded-xl flex flex-col items-center text-center">
+<span class="text-[9px] font-mono text-slate-300">Neural De-Esser</span>
+<div class="my-1.5 w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-cyber-cyan text-sm">mic_double</span>
+</div>
+<span class="text-[10px] font-mono font-bold text-cyber-cyan">-3.6 dB</span>
+</div>
+</div>
+<!-- Transient Punch Controls -->
+<div class="bg-obsidian/40 p-2.5 rounded-xl space-y-2 mb-3">
+<div>
+<div class="flex justify-between text-[9px] font-mono mb-0.5">
+<span class="text-slate-400">Transient Punch (Attack)</span>
+<span class="text-white">+24%</span>
+</div>
+<div class="relative w-full h-1.5 bg-black/60 rounded-full">
+<div class="h-full bg-cyber-magenta w-[62%] rounded-full shadow-glow-magenta"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[9px] font-mono mb-0.5">
+<span class="text-slate-400">Sustain Body (Tail)</span>
+<span class="text-white">+12%</span>
+</div>
+<div class="relative w-full h-1.5 bg-black/60 rounded-full">
+<div class="h-full bg-cyber-blue w-[50%] rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Final Master Export Button -->
+<button class="w-full py-3 px-4 rounded-xl font-display font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-cyber-cyan via-purple-600 to-cyber-magenta hover:brightness-110 text-white shadow-glow-play transition-all flex items-center justify-center gap-2 group">
+<span class="material-symbols-outlined text-sm group-hover:scale-110 transition-transform">ios_share</span>
+<span>Export Mastered File</span>
+</button>
+</section>
+</div>
+<!-- END: 3-Column Studio Console Grid -->
+<!-- BEGIN: Universal Bottom Transport Player Bar (Consistent across views) -->
+<section class="glass-panel cyber-border-gradient rounded-2xl p-3 shadow-2xl relative" data-purpose="audio-player-transport">
+<div class="flex flex-col md:flex-row items-center justify-between gap-3">
+<!-- Currently Playing Track Metadata -->
+<div class="flex items-center gap-3 w-full md:w-auto">
+<div class="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-glow-cyan bg-slate-900">
+<img class="w-full h-full object-cover" data-alt="Cyberpunk high-tech album artwork with neon cyan, deep purple holographic geometric rings glowing inside an obsidian dark studio soundstage" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsvrvDnVwE6qnDiCvEdJ4NdVsYx6txp3y-SOCpJ-IRHMAdFlYefOFw4u6NH1FOVy8A7Si7ePFiPlrRHr9ChFlMS1JzirjbSU9K4CFs5X19rFmjT8hd8Pt_TMn_5f1kCgHdrEQSBwD0NzZ2WrxDRVXIgODvlq6qU3UxVkImtkISWLrkdBMvYhScyJYg7lqckg5vfSaZgrDAcngUxaAEY1ol90ZcMBQXvG5rHnPSmLcJ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+<div class="absolute bottom-1 right-1 flex items-end gap-0.5 h-3">
+<span class="w-0.5 bg-cyber-cyan h-full rounded-t-sm"></span>
+<span class="w-0.5 bg-cyber-magenta h-2/3 rounded-t-sm"></span>
+<span class="w-0.5 bg-white h-1/2 rounded-t-sm"></span>
+</div>
+</div>
+<div class="min-w-0 flex-1">
+<div class="flex items-center gap-2">
+<h3 class="font-display font-bold text-sm tracking-wide text-white truncate">Cyber Odyssey (AI Stem Master)</h3>
+<span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-pink-500/20 text-pink-300 shrink-0">96kHz</span>
+</div>
+<p class="text-xs text-slate-400 font-mono truncate">Kavinsky • Neural Remix Deck A • Key: F# Minor • 128 BPM</p>
+</div>
+</div>
+<!-- Scrubber & Playback Controls -->
+<div class="flex flex-col items-center gap-1.5 w-full md:max-w-md lg:max-w-lg">
+<div class="flex items-center gap-4">
+<!-- Previous Track -->
+<button class="p-1.5 text-slate-400 hover:text-white transition-colors" title="Previous Track">
+<span class="material-symbols-outlined text-lg">skip_previous</span>
+</button>
+<!-- 20s Rewind -->
+<button class="p-1.5 text-slate-400 hover:text-cyber-cyan transition-colors" title="Rewind 20s">
+<span class="material-symbols-outlined text-lg">replay_10</span>
+</button>
+<!-- Play / Pause Glowing Button -->
+<button class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyber-cyan to-cyber-magenta hover:scale-105 active:scale-95 transition-transform flex items-center justify-center shadow-glow-play text-black font-bold">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">pause</span>
+</button>
+<!-- 20s Forward -->
+<button class="p-1.5 text-slate-400 hover:text-cyber-cyan transition-colors" title="Forward 20s">
+<span class="material-symbols-outlined text-lg">forward_10</span>
+</button>
+<!-- Next Track -->
+<button class="p-1.5 text-slate-400 hover:text-white transition-colors" title="Next Track">
+<span class="material-symbols-outlined text-lg">skip_next</span>
+</button>
+</div>
+<!-- Scrubber Progress Bar -->
+<div class="w-full flex items-center gap-2">
+<span class="text-[10px] font-mono text-slate-400 w-8 text-right">02:44</span>
+<div class="relative flex-1 h-2 bg-black/60 rounded-full cursor-pointer group">
+<div class="absolute inset-y-0 left-0 bg-gradient-to-r from-cyber-cyan via-purple-500 to-pink-500 rounded-full w-[65%] shadow-glow-cyan"></div>
+<div class="absolute top-1/2 left-[65%] -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[10px] font-mono text-slate-400 w-8">04:12</span>
+</div>
+</div>
+<!-- Quick Mix Level & Cue Toggles -->
+<div class="hidden lg:flex items-center gap-3">
+<button class="flex items-center gap-1 text-[11px] font-mono text-slate-300 hover:text-cyber-cyan transition-colors">
+<span class="material-symbols-outlined text-base">volume_up</span>
+<span>Master</span>
+</button>
+<div class="w-20 h-1.5 bg-black/60 rounded-full">
+<div class="h-full bg-cyber-cyan w-[82%] rounded-full shadow-glow-cyan"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: Universal Bottom Transport Player Bar -->
+<!-- BEGIN: Interactive Client-side Script to update Bottom Dock active tab -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Find the global bottom navigation dock rendered by shell
+      const dock = document.querySelector('[data-purpose="bottom-navigation-dock"]');
+      if (dock) {
+        const buttons = dock.querySelectorAll('button');
+        if (buttons && buttons.length >= 4) {
+          // Tab 1: NOW PLAYING (reset to inactive)
+          buttons[0].className = "flex flex-col items-center justify-center py-3 px-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.07] text-slate-300 hover:text-white transition-all group";
+          
+          // Tab 2: MIX PAD (inactive)
+          buttons[1].className = "flex flex-col items-center justify-center py-3 px-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.07] text-slate-300 hover:text-white transition-all group";
+          
+          // Tab 3: DOLBY ATMOS (reset from shell's active state to inactive)
+          buttons[2].className = "flex flex-col items-center justify-center py-3 px-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.07] text-slate-300 hover:text-white transition-all group relative";
+          const oldIndicator = buttons[2].querySelector('.absolute.bottom-1');
+          if (oldIndicator) oldIndicator.remove();
+          const oldSpinIcon = buttons[2].querySelector('.animate-spin');
+          if (oldSpinIcon) oldSpinIcon.classList.remove('animate-spin');
+
+          // Tab 4: MASTER MIX & CONFIG (SET TO ACTIVE)
+          buttons[3].className = "relative flex flex-col items-center justify-center py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-pink-500/20 to-cyber-cyan/20 text-white shadow-glow-cyan transition-all group";
+          
+          // Add glowing active pill line inside Tab 4 if not exists
+          if (!buttons[3].querySelector('.master-active-pill')) {
+            const pill = document.createElement('div');
+            pill.className = 'master-active-pill absolute bottom-1 w-14 h-1 bg-gradient-to-r from-amber-400 to-cyber-cyan rounded-full shadow-[0_0_10px_#00f2fe]';
+            buttons[3].appendChild(pill);
+          }
+
+          // Highlight icon
+          const tab4Icon = buttons[3].querySelector('i');
+          if (tab4Icon) {
+            tab4Icon.className = "w-5 h-5 text-cyber-cyan transition-transform group-hover:scale-110";
+          }
+          const tab4Title = buttons[3].querySelector('.font-display');
+          if (tab4Title) {
+            tab4Title.className = "font-display font-bold text-sm tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-pink-300 to-cyber-cyan";
+          }
+        }
+      }
+
+      // Presets switch micro-interaction
+      const presetBtns = document.querySelectorAll('[data-preset]');
+      presetBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          presetBtns.forEach(b => {
+            b.className = "px-3 py-1.5 rounded-lg text-xs font-mono text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-all shrink-0";
+          });
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-mono font-medium bg-gradient-to-r from-cyber-cyan/20 to-cyber-purple/30 text-white shadow-glow-cyan shrink-0 transition-all flex items-center gap-1.5";
+        });
+      });
+    });
+  </script>
+</div></main>
+<!-- END: MainContentArea -->
+<!-- BEGIN: BottomNavigationTabs -->
+<!-- Matches 4 bottom tabs in the sketch exactly:
+         1. NOW PLAYING
+         2. MIX PAD
+         3. DOLBY ATMOS
+         4. MATER MIX & CONFIG (Master Mix & Config)
+    -->
+<nav class="glass-panel cyber-border-gradient rounded-2xl p-2 shadow-2xl mt-2" data-purpose="bottom-navigation-dock">
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+<!-- Tab 1: NOW PLAYING (Active) -->
+<button class="flex flex-col items-center justify-center py-3 px-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.07] border border-white/5 hover:border-white/20 text-slate-300 hover:text-white transition-all group">
+<div class="flex items-center gap-2 mb-1">
+<i class="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" data-lucide="disc-3"></i>
+<span class="font-display font-bold text-sm tracking-wide">NOW PLAYING</span>
+</div>
+<span class="text-[10px] font-mono text-slate-400">Deck A • Cyber Odyssey</span>
+</button>
+<!-- Tab 2: MIX PAD (Sketch: "MIX PAD") -->
+<button class="flex flex-col items-center justify-center py-3 px-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.07] border border-white/5 hover:border-white/20 text-slate-300 hover:text-white transition-all group">
+<div class="flex items-center gap-2 mb-1">
+<i class="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" data-lucide="layout-grid"></i>
+<span class="font-display font-bold text-sm tracking-wide">MIX PAD</span>
+</div>
+<span class="text-[10px] font-mono text-slate-400">16 FX Triggers • Loops</span>
+</button>
+<!-- Tab 3: DOLBY ATMOS (Sketch: "DOLBY ATMOS") -->
+<button class="relative flex flex-col items-center justify-center py-3 px-4 rounded-xl bg-gradient-to-r from-pink-500/20 to-cyber-cyan/20 border border-pink-500/50 text-white shadow-glow-cyan transition-all group">
+<div class="flex items-center gap-2 mb-1">
+<i class="w-5 h-5 text-pink-400 animate-spin" data-lucide="sparkles" style="animation-duration: 6s;"></i>
+<span class="font-display font-bold text-sm tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-cyber-cyan">DOLBY ATMOS</span>
+</div>
+<span class="text-[10px] font-mono text-pink-300/90">3D Spatial Matrix (Active)</span>
+<!-- Active underline indicator -->
+<div class="absolute bottom-1 w-12 h-1 bg-pink-400 rounded-full shadow-[0_0_8px_#f72585]"></div>
+</button>
+<!-- Tab 4: MASTER MIX & CONFIG (Sketch: "MATER MIX & CONFIG") -->
+<button class="flex flex-col items-center justify-center py-3 px-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.07] border border-white/5 hover:border-white/20 text-slate-300 hover:text-white transition-all group">
+<div class="flex items-center gap-2 mb-1">
+<i class="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" data-lucide="sliders"></i>
+<span class="font-display font-bold text-sm tracking-wide">MASTER MIX &amp; CONFIG</span>
+</div>
+<span class="text-[10px] font-mono text-slate-400">EQ • Limiter • AI DSP</span>
+</button>
+</div>
+</nav>
+<!-- END: BottomNavigationTabs -->
+</div>
+<!-- BEGIN: Interactive Canvas / Icon Initializer Script -->
+<script data-purpose="icon-initialization">
+    // Initialize feather/lucide icons
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    });
+  </script>
+<script data-purpose="equalizer-interaction">
+    // Simple dynamic subtle height pulsation for waveform fidelity
+    document.addEventListener("DOMContentLoaded", () => {
+      const bars = document.querySelectorAll('.wave-bar');
+      setInterval(() => {
+        bars.forEach(bar => {
+          const randomFactor = Math.random() * 0.4 + 0.8;
+          const currentHeight = parseInt(window.getComputedStyle(bar).height);
+          if (currentHeight > 0) {
+            bar.style.transform = `scaleY(${randomFactor.toFixed(2)})`;
+          }
+        });
+      }, 350);
+    });
+  </script>
+<!-- END: Interactive Canvas / Icon Initializer Script -->
+</body></html>

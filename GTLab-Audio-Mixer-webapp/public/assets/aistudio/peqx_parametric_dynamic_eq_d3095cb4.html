@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PEQ-X Parametric & Dynamic EQ - Modular Channel Rack</title>
+<style>
+  :root {
+    --bg-dark: #14191f;
+    --panel-bg: #1e252d;
+    --strip-bg: #252e38;
+    --strip-alt: #212932;
+    --border-col: #34414f;
+    --text-main: #e2eaf2;
+    --text-muted: #8b9bb0;
+    --cyan-glow: #29e3d8;
+    --green-active: #1ee668;
+    --amber-glow: #f5a623;
+    --red-glow: #ff4757;
+    --btn-dark: #181f26;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  body {
+    background: #0c1014;
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  .peqx-window {
+    width: 100%;
+    max-width: 1460px;
+    background: var(--bg-dark);
+    border: 1px solid #3c4a59;
+    border-radius: 8px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top Control Bar */
+  .top-bar {
+    background: linear-gradient(180deg, #27313c 0%, #1c232b 100%);
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-col);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+  }
+
+  .top-controls-left, .top-controls-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .ctrl-box {
+    background: #141a21;
+    border: 1px solid #394858;
+    color: var(--text-main);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ctrl-box label {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.4px;
+  }
+
+  select.peqx-select {
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 12px;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    max-width: 240px;
+  }
+
+  select.peqx-select option, select.peqx-select optgroup {
+    background: #182028;
+    color: var(--text-main);
+  }
+
+  .badge-3300 {
+    background: #334354;
+    color: var(--cyan-glow);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+  }
+
+  .btn-action {
+    background: linear-gradient(180deg, #254b57 0%, #19353e 100%);
+    border: 1px solid #357688;
+    color: #9beeff;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-action:hover {
+    background: linear-gradient(180deg, #2f6070 0%, #204550 100%);
+    box-shadow: 0 0 8px rgba(41, 227, 216, 0.35);
+  }
+
+  .btn-upload {
+    background: linear-gradient(180deg, #24687d 0%, #194c5c 100%);
+    border-color: #3ca1c0;
+    color: #e3faff;
+  }
+
+  /* Sub Status Bar */
+  .status-bar {
+    background: #171e25;
+    padding: 6px 16px;
+    border-bottom: 1px solid var(--border-col);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--cyan-glow);
+  }
+
+  .status-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .bypass-btn {
+    background: #232b35;
+    border: 1px solid #455466;
+    color: var(--text-main);
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .bypass-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--amber-glow);
+    box-shadow: 0 0 6px var(--amber-glow);
+  }
+
+  .bypass-btn.active .bypass-dot {
+    background: #555;
+    box-shadow: none;
+  }
+
+  /* Main Workspace */
+  .workspace {
+    display: flex;
+    min-height: 670px;
+    background: var(--panel-bg);
+  }
+
+  /* Left Master Gain Strip */
+  .master-strip {
+    width: 175px;
+    min-width: 175px;
+    background: #1a2129;
+    border-right: 2px solid #11161b;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .master-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-col);
+    padding-bottom: 8px;
+  }
+
+  .master-fader-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 360px;
+    margin: 12px 0;
+  }
+
+  .db-scale {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 290px;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: right;
+  }
+
+  .vu-meter {
+    width: 18px;
+    height: 290px;
+    background: #0e1318;
+    border: 1px solid #2d3845;
+    border-radius: 3px;
+    padding: 2px;
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;
+  }
+
+  .vu-bar {
+    flex: 1;
+    height: 72%;
+    background: linear-gradient(0deg, #19e66b 0%, #19e66b 65%, #f5c723 85%, #ff3b4e 100%);
+    border-radius: 1px;
+    transition: height 0.08s ease;
+  }
+
+  .trim-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-col);
+  }
+
+  .trim-val {
+    color: var(--cyan-glow);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  /* Bands Rack Container */
+  .rack-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .rack-header {
+    background: #182028;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border-col);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .scroll-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .bands-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: #3c4f63 #141a20;
+  }
+
+  .bands-scroll-container::-webkit-scrollbar {
+    height: 10px;
+  }
+  .bands-scroll-container::-webkit-scrollbar-track {
+    background: #141a20;
+  }
+  .bands-scroll-container::-webkit-scrollbar-thumb {
+    background: #3c4f63;
+    border-radius: 5px;
+  }
+
+  /* Individual EQ Band Strip */
+  .band-strip {
+    min-width: 156px;
+    flex: 1;
+    background: var(--strip-bg);
+    border-right: 1px solid #161c22;
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .band-strip:nth-child(even) {
+    background: var(--strip-alt);
+  }
+
+  .band-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    color: #cfdbe8;
+    line-height: 1.25;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+  }
+
+  .filter-type-select {
+    width: 100%;
+    background: #f2f6fa;
+    color: #111820;
+    border: 1px solid #9ab0c7;
+    border-radius: 3px;
+    padding: 4px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  /* L / C / R Placement Buttons */
+  .lcr-group {
+    display: flex;
+    width: 100%;
+    gap: 4px;
+    justify-content: center;
+  }
+
+  .lcr-btn {
+    flex: 1;
+    background: #1b222a;
+    border: 1px solid #34414f;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 0;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .lcr-btn.active {
+    background: var(--green-active);
+    color: #072312;
+    border-color: #5eff98;
+    box-shadow: 0 0 8px rgba(30, 230, 104, 0.45);
+  }
+
+  /* Extended Height Vertical Gain Fader */
+  .fader-box {
+    position: relative;
+    height: 265px; /* Tall Gain Fader Height as requested */
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 4px 0;
+    background: rgba(14, 19, 24, 0.45);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 10px 0;
+  }
+
+  .fader-ticks {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 235px;
+    font-size: 9px;
+    color: #77889b;
+    margin-right: 8px;
+    text-align: right;
+  }
+
+  .fader-track-wrap {
+    position: relative;
+    height: 235px;
+    width: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  input[type="range"].tall-fader {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 235px;
+    height: 6px;
+    background: #10151b;
+    border: 1px solid #32404e;
+    border-radius: 3px;
+    transform: rotate(-90deg);
+    cursor: ns-resize;
+    outline: none;
+  }
+
+  input[type="range"].tall-fader::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 26px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #526173 0%, #98a9bc 50%, #465465 100%);
+    border: 1px solid #c5d4e6;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+    cursor: ns-resize;
+  }
+
+  input[type="range"].tall-fader::-moz-range-thumb {
+    width: 18px;
+    height: 26px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #526173 0%, #98a9bc 50%, #465465 100%);
+    border: 1px solid #c5d4e6;
+    cursor: ns-resize;
+  }
+
+  .gain-readout {
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    background: #151c23;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid #2e3b48;
+    min-width: 68px;
+    text-align: center;
+  }
+
+  /* Dynamic EQ Button Matrix */
+  .dyn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .dyn-btn {
+    background: var(--btn-dark);
+    border: 1px solid #33404f;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 2px;
+    border-radius: 3px;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .dyn-btn.dyn-on {
+    color: var(--amber-glow);
+    border-color: #805b20;
+  }
+
+  .dyn-btn.eq-in-on {
+    background: var(--cyan-glow);
+    color: #062524;
+    border-color: #7ef7ef;
+    box-shadow: 0 0 8px rgba(41, 227, 216, 0.45);
+  }
+
+  .dyn-btn.mode-exp {
+    color: #3fe87f;
+    border-color: #246b40;
+  }
+
+  .dyn-btn.mode-comp {
+    color: #ff6b78;
+    border-color: #782a33;
+  }
+
+  /* Rotary Knobs Section */
+  .knobs-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    width: 100%;
+  }
+
+  .knob-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .knob-ring {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: ns-resize;
+    background: radial-gradient(circle at 30% 30%, #384654, #1b222a);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.6);
+  }
+
+  .knob-ring.amber { border: 2.5px solid var(--amber-glow); box-shadow: 0 0 8px rgba(245, 166, 35, 0.3); }
+  .knob-ring.cyan  { border: 2.5px solid var(--cyan-glow);  box-shadow: 0 0 8px rgba(41, 227, 216, 0.3); }
+  .knob-ring.red   { border: 2.5px solid var(--red-glow);   box-shadow: 0 0 8px rgba(255, 71, 87, 0.3); }
+
+  .knob-indicator {
+    width: 2px;
+    height: 14px;
+    background: #fff;
+    position: absolute;
+    top: 4px;
+    transform-origin: 50% 17px;
+    border-radius: 1px;
+  }
+
+  .knob-val {
+    font-size: 11px;
+    font-weight: 600;
+    color: #d0dce8;
+  }
+
+  /* Bottom Transport Bar */
+  .transport-bar {
+    background: #141a21;
+    border-top: 1px solid var(--border-col);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .transport-btns {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .t-btn {
+    background: #212a34;
+    border: 1px solid #384656;
+    color: var(--text-main);
+    width: 32px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .t-btn.play-active {
+    background: var(--cyan-glow);
+    color: #062321;
+    border-color: #82fff7;
+    box-shadow: 0 0 10px rgba(41, 227, 216, 0.5);
+  }
+
+  .track-progress {
+    flex: 1;
+    max-width: 640px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .seek-bar {
+    flex: 1;
+    height: 6px;
+    background: #25303b;
+    border-radius: 3px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .seek-fill {
+    width: 35%;
+    height: 100%;
+    background: var(--cyan-glow);
+  }
+
+  .output-readout {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 700;
+  }
+  .output-readout span {
+    color: var(--cyan-glow);
+  }
+</style>
+</head>
+<body>
+
+<div class="peqx-window">
+  <!-- TOP HEADER BAR -->
+  <div class="top-bar">
+    <div class="top-controls-left">
+      <div class="ctrl-box">
+        <label>CHANNEL:</label>
+        <select id="channelSelect" class="peqx-select">
+          <option value="ch1">CH 01: Kick Sub-Punch</option>
+          <option value="ch2">CH 02: Lead Vocal Air</option>
+          <option value="ch3">CH 03: Snare Crack & Body</option>
+          <option value="ch4">CH 04: 808 Synth Bass</option>
+          <option value="ch5">CH 05: Master Bus Stereo</option>
+        </select>
+      </div>
+
+      <!-- PRESET LIBRARY DROPDOWN (22 Categories x 50 Presets) -->
+      <div class="ctrl-box">
+        <label>PRESET:</label>
+        <select id="presetSelect" class="peqx-select"></select>
+        <span class="badge-3300" title="22 Categories × 50 Presets × 3 Band Versions">3,300</span>
+      </div>
+
+      <button class="btn-action" id="savePresetBtn">SAVE</button>
+
+      <!-- NEW EQ BANDS DROPDOWN (8, 16, 32 Band) -->
+      <div class="ctrl-box" style="border-color:#29e3d8;">
+        <label style="color:#29e3d8;">EQ BANDS:</label>
+        <select id="eqBandsSelect" class="peqx-select">
+          <option value="8" selected>8 Band</option>
+          <option value="16">16 Band</option>
+          <option value="32">32 Band</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="top-controls-right">
+      <label class="btn-action btn-upload" for="audioFileInput">
+        &#8682; UPLOAD AUDIO / STEM
+      </label>
+      <input type="file" id="audioFileInput" accept="audio/*" style="display:none;" />
+    </div>
+  </div>
+
+  <!-- DSP STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-left">
+      <button class="bypass-btn" id="globalBypassBtn">
+        <span class="bypass-dot"></span> Bypass
+      </button>
+      <span>&#9830; DSP ENGINE: <strong>14.8% / 96kHz / 32-bit Float</strong> &nbsp;|&nbsp; ZERO LATENCY FIR</span>
+    </div>
+    <div id="activePresetInfo">Loaded: Sub-Bass Clean &amp; Punch [8 Band]</div>
+  </div>
+
+  <!-- WORKSPACE: MASTER GAIN + FREQUENCY BANDS RACK -->
+  <div class="workspace">
+    <!-- MASTER GAIN STRIP -->
+    <div class="master-strip">
+      <div class="master-header">
+        <span>MASTER GAIN</span>
+        <span>&#9875;</span>
+      </div>
+
+      <div class="master-fader-area">
+        <div class="db-scale">
+          <span>+12</span>
+          <span>+6</span>
+          <span>0</span>
+          <span>-6</span>
+          <span>-12</span>
+          <span>-18</span>
+          <span>-24</span>
+        </div>
+        <div class="fader-track-wrap">
+          <input type="range" id="masterGainFader" class="tall-fader" min="-24" max="12" step="0.1" value="0" />
+        </div>
+        <div class="vu-meter">
+          <div class="vu-bar" id="vuL"></div>
+          <div class="vu-bar" id="vuR"></div>
+        </div>
+      </div>
+
+      <div class="trim-section">
+        <span style="font-size:10px; color:var(--text-muted);">MASTER TRIM</span>
+        <div class="knob-ring cyan" id="masterTrimKnob" data-val="0">
+          <div class="knob-indicator" id="masterTrimInd"></div>
+        </div>
+        <div class="trim-val" id="masterGainReadout">+0.0 dB</div>
+      </div>
+    </div>
+
+    <!-- PARAMETRIC & DYNAMIC FREQUENCY BANDS RACK -->
+    <div class="rack-section">
+      <div class="rack-header">
+        <span>&#9835; PARAMETRIC &amp; DYNAMIC FREQUENCY BANDS RACK</span>
+        <span class="scroll-hint" id="scrollHintText">Showing 8 Active Bands (Select 16 or 32 Bands for Surgical Control)</span>
+      </div>
+
+      <div class="bands-scroll-container" id="bandsRackContainer">
+        <!-- Dynamically populated EQ Band Strips -->
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM TRANSPORT BAR -->
+  <div class="transport-bar">
+    <div class="transport-btns">
+      <button class="t-btn" id="rewindBtn" title="Stop / Reset">&#9198;</button>
+      <button class="t-btn" id="stopBtn" title="Stop">&#9632;</button>
+      <button class="t-btn play-active" id="playBtn" title="Play / Pause Demo Tone or Uploaded Stem">&#9654;</button>
+    </div>
+
+    <div class="track-progress">
+      <span id="trackTitle" style="color:#29e3d8; font-weight:700;">&#9679; CYBER ODYSSEY (EXTENDED MIX)</span>
+      <span id="currentTimeLabel">00:00</span>
+      <div class="seek-bar" id="seekBar"><div class="seek-fill" id="seekFill"></div></div>
+      <span id="durationLabel">02:20</span>
+    </div>
+
+    <div class="output-readout">
+      OUTPUT: <span id="outputDbLabel">-4.4 dB</span>
+    </div>
+  </div>
+</div>
+
+<audio id="stemAudioPlayer" crossorigin="anonymous" loop></audio>
+
+<script>
+/**
+ * 1. 22 PROFESSIONAL CATEGORIES (50 Presets Each -> x 3 Band Configs = 3,300 Versions)
+ */
+const PEQX_CATEGORIES = [
+  "01. Lead Vocals & Pop Clarity",
+  "02. Rap, Hip-Hop & Spoken Word",
+  "03. Podcast, Broadcast & Voiceover",
+  "04. Background Vocals & Choir",
+  "05. Dynamic De-Essing & Sibilance",
+  "06. Kick Drum & Sub Punch",
+  "07. Snare, Toms & Claps",
+  "08. Cymbals, Hi-Hats & Overheads",
+  "09. Drum Bus & Parallel Crush",
+  "10. 808 & Synth Bass",
+  "11. Electric & Acoustic Bass Guitar",
+  "12. Kick-Bass Dynamic Unmasking",
+  "13. Acoustic & Electric Guitars",
+  "14. Piano, E-Piano & Organ",
+  "15. Synth Leads, Plucks & Pads",
+  "16. Orchestral Strings, Brass & Woodwinds",
+  "17. Mastering Tonal Balance & Tilt EQ",
+  "18. Mid/Side Width & Focus",
+  "19. Dynamic Resonance & Harshness Control",
+  "20. Vintage Console & Analog Curves",
+  "21. DJ Isolators, Sweeps & Lo-Fi",
+  "22. Cinema, Gaming & Foley SFX"
+];
+
+const PRESET_DESCRIPTORS = [
+  "Clean & Punch", "Warm Presence", "Air & Shimmer", "Surgical Mud Cut", "Dynamic Tamer",
+  "Analog Console Bite", "Sub Tightener", "Silky Top-End", "Wide Stereo Sculpt", "Transient Snap",
+  "Studio Reference", "Deep Low Shelf", "Crisp Articulation", "Boxiness Remover", "Harmonic Clarity",
+  "Radio Ready", "Club Isolator", "Smooth Compression Curve", "Upward Expander Lift", "De-Harsh 3kHz",
+  "Silk Ribbon Highs", "Pultec Low Trick", "SSL Punch Curve", "Neve Vintage Warmth", "Modern Pop Polish",
+  "Arena Live Cut", "Intimate Close-Mic", "Cinematic Boom", "Lo-Fi Bandpass", "Sub-Bass Control",
+  "Acoustic Body", "Pick Attack Boost", "String Lushness", "Brass Tamer", "Synth Lead Focus",
+  "Pad Space Maker", " Overhead Shimmer", "Snare Crack 200Hz", "Kick Beater Click", "808 Sub Glide",
+  "Sidechain Dynamic Dip", "Mid-Channel Lock", "Side-Channel Air", "Broadcast Voice", "ASMR Binaural Crisp",
+  "Gaming Footstep Boost", "Dialog Intelligibility", "Tape Saturation EQ", "Mastering Glue", "Final Limiter Prep"
+];
+
+const FILTER_TYPES = ["Low Shelf", "Peaking Band", "High Shelf", "High Pass", "Low Pass"];
+
+// Deterministic pseudo-random helper so every preset version is consistent
+function seededVal(seed) {
+  const x = Math.sin(seed * 9999.91) * 10000;
+  return x - Math.floor(x);
+}
+
+// Generate logarithmic frequencies for 8, 16, or 32 bands (20Hz to 18kHz)
+function getLogFrequencies(bandCount) {
+  const minF = 32;
+  const maxF = 16500;
+  const freqs = [];
+  for (let i = 0; i < bandCount; i++) {
+    const ratio = i / (bandCount - 1);
+    const f = minF * Math.pow(maxF / minF, ratio);
+    freqs.push(Math.round(f));
+  }
+  return freqs;
+}
+
+function formatFreq(hz) {
+  return hz >= 1000 ? (hz / 1000).toFixed(hz >= 10000 ? 0 : 1) + "kHz" : hz + "Hz";
+}
+
+// Build Band Parameters dynamically for any (catIdx, presetIdx, bandCount) -> Total 3,300 versions
+function generatePresetBands(catIdx, presetIdx, bandCount) {
+  const freqs = getLogFrequencies(bandCount);
+  const baseSeed = (catIdx + 1) * 1000 + (presetIdx + 1) * 17 + bandCount;
+
+  return freqs.map((hz, i) => {
+    const s1 = seededVal(baseSeed + i * 3.1);
+    const s2 = seededVal(baseSeed + i * 7.3);
+    const s3 = seededVal(baseSeed + i * 11.7);
+
+    let filterType = "Peaking Band";
+    let headerLabel = "MID / PEAKING BAND";
+    if (i === 0) {
+      filterType = s1 > 0.5 ? "High Pass" : "Low Shelf";
+      headerLabel = "LOW / " + filterType.toUpperCase();
+    } else if (i === 1 && bandCount >= 8) {
+      filterType = "Low Shelf";
+      headerLabel = "LOW / LOW SHELF";
+    } else if (i === bandCount - 1) {
+      filterType = s1 > 0.65 ? "Low Pass" : "High Shelf";
+      headerLabel = "HIGH / " + filterType.toUpperCase();
+    } else if (i >= bandCount - 2) {
+      filterType = "High Shelf";
+      headerLabel = "HIGH / HIGH SHELF";
+    } else if (hz > 2500) {
+      headerLabel = "HIGH / PEAKING BAND";
+    }
+
+    const gainDb = Number(((s1 - 0.48) * 9.0).toFixed(2)); // -4.3dB to +4.7dB realistic studio curve
+    const dynGain = Math.round((s2 - 0.5) * 8);
+    const qVal = Number((0.5 + s3 * 6.5).toFixed(1));
+    const dynMode = i < bandCount / 2 ? "EXP" : "COMP";
+    const lcrOptions = ["L", "C", "R"];
+    const placement = lcrOptions[Math.floor(s2 * 3) % 3] || "L";
+
+    return {
+      index: i,
+      headerLabel,
+      filterType,
+      placement,
+      gainDb,
+      dynActive: true,
+      eqIn: true,
+      bypassed: false,
+      dynMode,
+      dynThresh: dynGain,
+      q: qVal,
+      freqHz: hz
+    };
+  });
+}
+
+/**
+ * 2. STATE & WEB AUDIO API DSP ENGINE
+ */
+let currentCategoryIdx = 5; // Default: 06. Kick Drum & Sub Punch
+let currentPresetIdx = 0;   // Default: Sub-Bass Clean & Punch
+let currentBandCount = 8;
+let globalBypass = false;
+let currentBandsData = [];
+
+let audioCtx = null;
+let mediaSource = null;
+let masterGainNode = null;
+let analyserNode = null;
+let biquadFilters = [];
+let demoOsc = null;
+let isPlaying = false;
+
+const presetSelectEl = document.getElementById("presetSelect");
+const eqBandsSelectEl = document.getElementById("eqBandsSelect");
+const bandsRackEl = document.getElementById("bandsRackContainer");
+const activePresetInfoEl = document.getElementById("activePresetInfo");
+const scrollHintTextEl = document.getElementById("scrollHintText");
+
+// Populate 22 Categories x 50 Presets (1,100 Preset items x 3 Band Modes = 3,300 Versions)
+function populatePresetLibrary() {
+  const frag = document.createDocumentFragment();
+  PEQX_CATEGORIES.forEach((catName, cIdx) => {
+    const optGroup = document.createElement("optgroup");
+    optGroup.label = catName;
+    for (let pIdx = 0; pIdx < 50; pIdx++) {
+      const opt = document.createElement("option");
+      opt.value = `${cIdx}:${pIdx}`;
+      const prefix = catName.split(".")[1].trim().split(" ")[0];
+      opt.textContent = `${prefix} - ${PRESET_DESCRIPTORS[pIdx]}`;
+      if (cIdx === currentCategoryIdx && pIdx === currentPresetIdx) {
+        opt.selected = true;
+      }
+      optGroup.appendChild(opt);
+    }
+    frag.appendChild(optGroup);
+  });
+  presetSelectEl.appendChild(frag);
+}
+
+function initAudioEngine() {
+  if (audioCtx) return;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  audioCtx = new AudioContextClass();
+  masterGainNode = audioCtx.createGain();
+  analyserNode = audioCtx.createAnalyser();
+  analyserNode.fftSize = 256;
+
+  const audioEl = document.getElementById("stemAudioPlayer");
+  mediaSource = audioCtx.createMediaElementSource(audioEl);
+
+  rebuildFilterChain();
+  requestAnimationFrame(updateVuMeters);
+}
+
+function mapBiquadType(uiFilterType) {
+  switch (uiFilterType) {
+    case "Low Shelf": return "lowshelf";
+    case "High Shelf": return "highshelf";
+    case "High Pass": return "highpass";
+    case "Low Pass": return "lowpass";
+    default: return "peaking";
+  }
+}
+
+function rebuildFilterChain() {
+  if (!audioCtx) return;
+
+  // Disconnect previous chain safely
+  try { mediaSource.disconnect(); } catch (e) {}
+  biquadFilters.forEach(f => { try { f.disconnect(); } catch (e) {} });
+  try { masterGainNode.disconnect(); } catch (e) {}
+
+  biquadFilters = currentBandsData.map(band => {
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = mapBiquadType(band.filterType);
+    filter.frequency.value = band.freqHz;
+    filter.Q.value = band.q;
+    filter.gain.value = (globalBypass || band.bypassed || !band.eqIn) ? 0 : band.gainDb;
+    return filter;
+  });
+
+  // Connect chain: Source -> Band 0 -> Band 1 ... -> MasterGain -> Analyser -> Destination
+  let prevNode = mediaSource;
+  if (demoOsc) {
+    try { demoOsc.disconnect(); } catch (e) {}
+  }
+
+  biquadFilters.forEach(filter => {
+    prevNode.connect(filter);
+    prevNode = filter;
+  });
+
+  if (demoOsc && biquadFilters.length > 0) {
+    demoOsc.connect(biquadFilters[0]);
+  }
+
+  prevNode.connect(masterGainNode);
+  masterGainNode.connect(analyserNode);
+  analyserNode.connect(audioCtx.destination);
+}
+
+function syncSingleBandToAudio(idx) {
+  if (!audioCtx || !biquadFilters[idx]) return;
+  const band = currentBandsData[idx];
+  const f = biquadFilters[idx];
+  f.type = mapBiquadType(band.filterType);
+  f.frequency.setTargetAtTime(band.freqHz, audioCtx.currentTime, 0.015);
+  f.Q.setTargetAtTime(band.q, audioCtx.currentTime, 0.015);
+  const effectiveGain = (globalBypass || band.bypassed || !band.eqIn) ? 0 : band.gainDb;
+  f.gain.setTargetAtTime(effectiveGain, audioCtx.currentTime, 0.015);
+}
+
+/**
+ * 3. RENDER UI BANDS RACK
+ */
+function renderBandsRack() {
+  bandsRackEl.innerHTML = "";
+  const frag = document.createDocumentFragment();
+
+  currentBandsData.forEach((band, idx) => {
+    const strip = document.createElement("div");
+    strip.className = "band-strip";
+
+    const gainFormatted = (band.gainDb >= 0 ? "+" : "") + band.gainDb.toFixed(2) + " dB";
+    const amberDeg = (band.dynThresh / 12) * 120;
+    const cyanDeg = ((band.q - 0.5) / 12) * 240 - 120;
+    const redDeg = (Math.log10(band.freqHz / 20) / Math.log10(20000 / 20)) * 260 - 130;
+
+    strip.innerHTML = `
+      <div class="band-title">B${idx + 1}: ${band.headerLabel}</div>
+
+      <select class="filter-type-select" data-idx="${idx}">
+        ${FILTER_TYPES.map(ft => `<option value="${ft}" ${ft === band.filterType ? "selected" : ""}>${ft}</option>`).join("")}
+      </select>
+
+      <div class="lcr-group">
+        ${["L", "C", "R"].map(ch => `
+          <button class="lcr-btn ${band.placement === ch ? "active" : ""}" data-idx="${idx}" data-ch="${ch}">${ch}</button>
+        `).join("")}
+      </div>
+
+      <div class="fader-box">
+        <div class="fader-ticks">
+          <span>+12</span>
+          <span>+6</span>
+          <span>0</span>
+          <span>-6</span>
+          <span>-12</span>
+          <span>-24</span>
+        </div>
+        <div class="fader-track-wrap">
+          <input type="range" class="tall-fader band-gain-fader" data-idx="${idx}"
+                 min="-24" max="12" step="0.05" value="${band.gainDb}" />
+        </div>
+      </div>
+
+      <div class="gain-readout" id="gainReadout_${idx}">${gainFormatted}</div>
+
+      <div class="dyn-grid">
+        <button class="dyn-btn ${band.dynActive ? "dyn-on" : ""}" data-action="dyn" data-idx="${idx}">DYN</button>
+        <button class="dyn-btn ${band.eqIn ? "eq-in-on" : ""}" data-action="eqin" data-idx="${idx}">EQ in</button>
+        <button class="dyn-btn ${band.bypassed ? "dyn-on" : ""}" data-action="byp" data-idx="${idx}">BYP</button>
+        <button class="dyn-btn ${band.dynMode === "EXP" ? "mode-exp" : "mode-comp"}" data-action="mode" data-idx="${idx}">
+          ${band.dynMode === "EXP" ? "&#9650;EXP" : "&#9660;COMP"}
+        </button>
+      </div>
+
+      <div class="knobs-col">
+        <div class="knob-wrap" title="Dynamic Threshold / Range (dB)">
+          <div class="knob-ring amber" data-knob="dyn" data-idx="${idx}">
+            <div class="knob-indicator" style="transform: rotate(${amberDeg}deg);"></div>
+          </div>
+          <span class="knob-val" id="dynVal_${idx}">${band.dynThresh > 0 ? "+" + band.dynThresh : band.dynThresh}</span>
+        </div>
+
+        <div class="knob-wrap" title="Q Factor (Bandwidth)">
+          <div class="knob-ring cyan" data-knob="q" data-idx="${idx}">
+            <div class="knob-indicator" style="transform: rotate(${cyanDeg}deg);"></div>
+          </div>
+          <span class="knob-val" id="qVal_${idx}">${band.q}</span>
+        </div>
+
+        <div class="knob-wrap" title="Center / Cutoff Frequency">
+          <div class="knob-ring red" data-knob="freq" data-idx="${idx}">
+            <div class="knob-indicator" style="transform: rotate(${redDeg}deg);"></div>
+          </div>
+          <span class="knob-val" id="freqVal_${idx}">${formatFreq(band.freqHz)}</span>
+        </div>
+      </div>
+    `;
+
+    frag.appendChild(strip);
+  });
+
+  bandsRackEl.appendChild(frag);
+  scrollHintTextEl.textContent = currentBandCount > 8
+    ? `Scroll horizontally for Bands 1–${currentBandCount} (${currentBandCount}-Band Surgical Mode)`
+    : `Showing 8 Active Bands (Switch to 16 or 32 Band for extended rack)`;
+}
+
+function loadSelectedPresetAndBands() {
+  const [cIdx, pIdx] = presetSelectEl.value.split(":").map(Number);
+  currentCategoryIdx = cIdx;
+  currentPresetIdx = pIdx;
+  currentBandCount = Number(eqBandsSelectEl.value);
+
+  currentBandsData = generatePresetBands(currentCategoryIdx, currentPresetIdx, currentBandCount);
+  renderBandsRack();
+  rebuildFilterChain();
+
+  const presetText = presetSelectEl.options[presetSelectEl.selectedIndex]?.text || "Custom";
+  activePresetInfoEl.textContent = `Loaded: ${presetText} [${currentBandCount} Band Version]`;
+}
+
+/**
+ * 4. INTERACTIVE EVENTS (Faders, Buttons, Knobs, Audio Upload & Demo Synth)
+ */
+presetSelectEl.addEventListener("change", loadSelectedPresetAndBands);
+eqBandsSelectEl.addEventListener("change", loadSelectedPresetAndBands);
+
+bandsRackEl.addEventListener("input", (e) => {
+  if (e.target.classList.contains("band-gain-fader")) {
+    initAudioEngine();
+    const idx = Number(e.target.dataset.idx);
+    const val = Number(e.target.value);
+    currentBandsData[idx].gainDb = val;
+    document.getElementById(`gainReadout_${idx}`).textContent = (val >= 0 ? "+" : "") + val.toFixed(2) + " dB";
+    syncSingleBandToAudio(idx);
+  }
+});
+
+bandsRackEl.addEventListener("change", (e) => {
+  if (e.target.classList.contains("filter-type-select")) {
+    initAudioEngine();
+    const idx = Number(e.target.dataset.idx);
+    currentBandsData[idx].filterType = e.target.value;
+    syncSingleBandToAudio(idx);
+  }
+});
+
+bandsRackEl.addEventListener("click", (e) => {
+  const lcrBtn = e.target.closest(".lcr-btn");
+  if (lcrBtn) {
+    const idx = Number(lcrBtn.dataset.idx);
+    currentBandsData[idx].placement = lcrBtn.dataset.ch;
+    renderBandsRack();
+    return;
+  }
+
+  const dynBtn = e.target.closest(".dyn-btn");
+  if (dynBtn) {
+    initAudioEngine();
+    const idx = Number(dynBtn.dataset.idx);
+    const act = dynBtn.dataset.action;
+    if (act === "dyn") currentBandsData[idx].dynActive = !currentBandsData[idx].dynActive;
+    if (act === "eqin") currentBandsData[idx].eqIn = !currentBandsData[idx].eqIn;
+    if (act === "byp") currentBandsData[idx].bypassed = !currentBandsData[idx].bypassed;
+    if (act === "mode") currentBandsData[idx].dynMode = currentBandsData[idx].dynMode === "EXP" ? "COMP" : "EXP";
+    renderBandsRack();
+    syncSingleBandToAudio(idx);
+  }
+});
+
+// Vertical Drag Support for Rotary Knobs
+let activeKnob = null;
+let startY = 0;
+
+window.addEventListener("mousedown", (e) => {
+  const knobEl = e.target.closest(".knob-ring");
+  if (!knobEl || !knobEl.dataset.knob) return;
+  initAudioEngine();
+  activeKnob = {
+    type: knobEl.dataset.knob,
+    idx: Number(knobEl.dataset.idx),
+    el: knobEl
+  };
+  startY = e.clientY;
+});
+
+window.addEventListener("mousemove", (e) => {
+  if (!activeKnob) return;
+  const dy = startY - e.clientY;
+  startY = e.clientY;
+  const band = currentBandsData[activeKnob.idx];
+
+  if (activeKnob.type === "q") {
+    band.q = Number(Math.min(18, Math.max(0.3, band.q + dy * 0.08)).toFixed(1));
+    document.getElementById(`qVal_${activeKnob.idx}`).textContent = band.q;
+    const deg = ((band.q - 0.5) / 12) * 240 - 120;
+    activeKnob.el.querySelector(".knob-indicator").style.transform = `rotate(${deg}deg)`;
+  } else if (activeKnob.type === "freq") {
+    const factor = 1 + dy * 0.012;
+    band.freqHz = Math.round(Math.min(20000, Math.max(20, band.freqHz * factor)));
+    document.getElementById(`freqVal_${activeKnob.idx}`).textContent = formatFreq(band.freqHz);
+    const deg = (Math.log10(band.freqHz / 20) / Math.log10(20000 / 20)) * 260 - 130;
+    activeKnob.el.querySelector(".knob-indicator").style.transform = `rotate(${deg}deg)`;
+  } else if (activeKnob.type === "dyn") {
+    band.dynThresh = Math.round(Math.min(12, Math.max(-12, band.dynThresh + dy * 0.2)));
+    document.getElementById(`dynVal_${activeKnob.idx}`).textContent = band.dynThresh > 0 ? "+" + band.dynThresh : band.dynThresh;
+    const deg = (band.dynThresh / 12) * 120;
+    activeKnob.el.querySelector(".knob-indicator").style.transform = `rotate(${deg}deg)`;
+  }
+  syncSingleBandToAudio(activeKnob.idx);
+});
+
+window.addEventListener("mouseup", () => { activeKnob = null; });
+
+// Master Gain & Global Bypass
+document.getElementById("masterGainFader").addEventListener("input", (e) => {
+  initAudioEngine();
+  const db = Number(e.target.value);
+  document.getElementById("masterGainReadout").textContent = (db >= 0 ? "+" : "") + db.toFixed(1) + " dB";
+  document.getElementById("masterTrimInd").style.transform = `rotate(${(db / 12) * 120}deg)`;
+  if (masterGainNode) {
+    masterGainNode.gain.setTargetAtTime(Math.pow(10, db / 20), audioCtx.currentTime, 0.02);
+  }
+});
+
+document.getElementById("globalBypassBtn").addEventListener("click", (e) => {
+  initAudioEngine();
+  globalBypass = !globalBypass;
+  e.currentTarget.classList.toggle("active", globalBypass);
+  currentBandsData.forEach((_, idx) => syncSingleBandToAudio(idx));
+});
+
+// Save Current Preset JSON Snapshot
+document.getElementById("savePresetBtn").addEventListener("click", () => {
+  const payload = {
+    preset: presetSelectEl.options[presetSelectEl.selectedIndex]?.text,
+    bandMode: `${currentBandCount} Band`,
+    bands: currentBandsData
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `PEQX_Preset_${currentBandCount}Band.json`;
+  a.click();
+});
+
+// Upload Audio / Stem & Transport Playback
+const audioEl = document.getElementById("stemAudioPlayer");
+document.getElementById("audioFileInput").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  initAudioEngine();
+  if (demoOsc) { try { demoOsc.stop(); demoOsc.disconnect(); } catch (err) {} demoOsc = null; }
+  audioEl.src = URL.createObjectURL(file);
+  document.getElementById("trackTitle").textContent = "● " + file.name.toUpperCase();
+  audioEl.play();
+  isPlaying = true;
+});
+
+document.getElementById("playBtn").addEventListener("click", () => {
+  initAudioEngine();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+
+  if (audioEl.src) {
+    if (audioEl.paused) { audioEl.play(); isPlaying = true; }
+    else { audioEl.pause(); isPlaying = false; }
+  } else {
+    // Built-in rich harmonic synth loop when no file is uploaded yet
+    if (!demoOsc) {
+      demoOsc = audioCtx.createOscillator();
+      demoOsc.type = "sawtooth";
+      demoOsc.frequency.value = 110;
+      const oscGain = audioCtx.createGain();
+      oscGain.gain.value = 0.12;
+      demoOsc.connect(oscGain);
+      if (biquadFilters.length > 0) oscGain.connect(biquadFilters[0]);
+      demoOsc.start();
+      isPlaying = true;
+    } else {
+      try { demoOsc.stop(); demoOsc.disconnect(); } catch (e) {}
+      demoOsc = null;
+      isPlaying = false;
+    }
+  }
+});
+
+document.getElementById("stopBtn").addEventListener("click", () => {
+  if (audioEl.src) { audioEl.pause(); audioEl.currentTime = 0; }
+  if (demoOsc) { try { demoOsc.stop(); demoOsc.disconnect(); } catch (e) {} demoOsc = null; }
+  isPlaying = false;
+});
+
+function updateVuMeters() {
+  const vuL = document.getElementById("vuL");
+  const vuR = document.getElementById("vuR");
+  if (analyserNode && isPlaying) {
+    const data = new Uint8Array(analyserNode.frequencyBinCount);
+    analyserNode.getByteFrequencyData(data);
+    const avg = data.reduce((a, b) => a + b, 0) / data.length;
+    const pct = Math.min(98, Math.max(8, (avg / 140) * 100));
+    vuL.style.height = pct + "%";
+    vuR.style.height = Math.max(6, pct - 4) + "%";
+    const outDb = (-24 + (pct / 100) * 22).toFixed(1);
+    document.getElementById("outputDbLabel").textContent = `${outDb} dB`;
+  } else {
+    vuL.style.height = "6%";
+    vuR.style.height = "6%";
+  }
+  requestAnimationFrame(updateVuMeters);
+}
+
+// Initialize App on Load
+populatePresetLibrary();
+loadSelectedPresetAndBands();
+</script>
+</body>
+</html>

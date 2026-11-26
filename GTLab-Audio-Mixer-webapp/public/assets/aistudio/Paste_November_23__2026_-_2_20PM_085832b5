@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GTLab - Mix Pad Channel Strips</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700;800&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cyberDark: '#080b14',
+            cyberSurface: 'rgba(15, 23, 42, 0.65)',
+            cyberBorder: 'rgba(56, 189, 248, 0.18)',
+            neonCyan: '#00f2fe',
+            neonMagenta: '#ff007f',
+            neonPink: '#f43f5e',
+            neonPurple: '#a855f7',
+            neonEmerald: '#10b981',
+            neonAmber: '#f59e0b',
+            neonLime: '#84cc16',
+            neonRed: '#ef4444'
+          },
+          boxShadow: {
+            'glow-cyan': '0 0 20px -3px rgba(0, 242, 254, 0.45)',
+            'glow-magenta': '0 0 20px -3px rgba(255, 0, 127, 0.45)',
+            'glow-purple': '0 0 20px -3px rgba(168, 85, 247, 0.45)',
+            'glow-amber': '0 0 15px 1px rgba(245, 158, 11, 0.5)',
+            'glow-active-tab': '0 0 25px 2px rgba(0, 242, 254, 0.25), inset 0 0 15px rgba(0, 242, 254, 0.15)',
+            'strip-glow': '0 0 25px -5px rgba(0, 242, 254, 0.25)'
+          },
+          fontFamily: {
+            sans: ['Space Grotesk', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+<!-- BEGIN: Custom Styles -->
+<style data-purpose="custom-glass-and-animations">
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 8px currentColor); }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    @keyframes blinkGreen {
+      0%, 100% { opacity: 1; box-shadow: 0 0 10px #10b981, inset 0 0 4px #a7f3d0; }
+      50% { opacity: 0.35; box-shadow: 0 0 2px #10b981; }
+    }
+    .animate-blink-green {
+      animation: blinkGreen 1.3s infinite ease-in-out;
+    }
+    .animate-pulse-glow {
+      animation: pulseRing 2.4s infinite ease-in-out;
+    }
+    .glass-panel {
+      background: radial-gradient(130% 130% at 50% 0%, rgba(20, 28, 48, 0.65) 0%, rgba(8, 12, 22, 0.85) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(0, 242, 254, 0.25);
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(10, 15, 29, 0.6);
+    }
+    /* Slider Range Custom Styling */
+    input[type=range].pan-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type=range].pan-slider::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: 9999px;
+    }
+    input[type=range].pan-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 12px;
+      width: 8px;
+      border-radius: 2px;
+      background: #e2e8f0;
+      border: 1px solid #00f2fe;
+      box-shadow: 0 0 6px #00f2fe;
+      margin-top: -4px;
+      cursor: ew-resize;
+    }
+  </style>
+<!-- END: Custom Styles -->
+</head>
+<body class="bg-[#080b14] text-slate-100 font-sans min-h-screen flex justify-center items-start p-4 sm:p-6 antialiased selection:bg-cyan-500 selection:text-black">
+<!-- Main 1440px Container matching Master Mix, Dolby Atmos, and Stem visualizer screens -->
+<div class="w-full max-w-[1440px] flex flex-col gap-4 relative">
+<!-- Background Ambient Glows -->
+<div class="fixed top-12 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+<div class="fixed bottom-10 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+<!-- BEGIN: TopHeader -->
+<header class="glass-panel rounded-2xl px-5 py-3 border border-slate-800/80 flex items-center justify-between shadow-2xl relative overflow-hidden" data-purpose="master-header">
+<!-- Top Neon Accent line -->
+<div class="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80"></div>
+<!-- Brand & Engine Specs -->
+<div class="flex items-center gap-4">
+<!-- Logo Box -->
+<div class="w-11 h-11 rounded-xl bg-slate-900/90 border border-cyan-400/40 flex items-center justify-center shadow-glow-cyan relative group">
+<span class="text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 via-pink-400 to-purple-500 font-black text-xl tracking-tighter">GT</span>
+<span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f2fe]"></span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-3">
+<h1 class="text-xl font-extrabold tracking-wider uppercase flex items-center gap-2">
+<span class="text-slate-100">GTLab</span>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-500 to-purple-400">AI POWERED AUDIO MIX</span>
+</h1>
+<span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 tracking-wider">v4.2 PRO</span>
+</div>
+<div class="flex items-center gap-2 text-xs font-mono text-slate-400 mt-0.5">
+<span>Neural Stem Separation</span>
+<span class="text-slate-600">•</span>
+<span>Dolby 7.1.4 Matrix</span>
+<span class="text-slate-600">•</span>
+<span class="flex items-center gap-1.5 text-emerald-400">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Engine Live (32-bit / 96kHz)
+            </span>
+</div>
+</div>
+</div>
+<!-- Master VU Meter & Settings Button -->
+<div class="flex items-center gap-5">
+<!-- VU Meters -->
+<div class="flex items-center gap-3 bg-black/40 px-3.5 py-1.5 rounded-xl border border-slate-800">
+<div class="text-right font-mono">
+<span class="text-[9px] uppercase tracking-wider text-slate-400 block leading-tight">Master Out</span>
+<span class="text-xs font-bold text-cyan-400">-0.4 dB</span>
+</div>
+<!-- Bar Graph -->
+<div class="flex items-end gap-1 h-6 w-12 pb-0.5" title="Stereo Master Peak">
+<div class="w-1.5 bg-emerald-400 rounded-xs h-3"></div>
+<div class="w-1.5 bg-emerald-400 rounded-xs h-4"></div>
+<div class="w-1.5 bg-cyan-400 rounded-xs h-5"></div>
+<div class="w-1.5 bg-cyan-300 rounded-xs h-6"></div>
+<div class="w-1.5 bg-amber-400 rounded-xs h-4"></div>
+<div class="w-1.5 bg-pink-500 rounded-xs h-3"></div>
+</div>
+</div>
+<!-- Settings Button -->
+<button class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/70 text-xs font-medium text-slate-200 transition-all shadow-sm">
+<svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Settings</span>
+</button>
+</div>
+</header>
+<!-- END: TopHeader -->
+<!-- BEGIN: MixPadContentArea -->
+<main class="flex flex-col gap-4" data-purpose="mix-pad-main-workspace">
+<!-- Top Control Bar (Banks, Quantize, Modes & Dials) -->
+<section class="glass-panel rounded-2xl p-4 border border-slate-800/80 shadow-xl flex flex-wrap items-center justify-between gap-4" data-purpose="pad-control-bar">
+<!-- Bank Selector -->
+<div class="flex items-center gap-2">
+<span class="text-[11px] font-mono uppercase text-slate-400 tracking-wider mr-1 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>Bank:
+          </span>
+<div class="inline-flex p-1 bg-black/40 border border-slate-800 rounded-xl">
+<button class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-400/40 shadow-glow-cyan flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-cyan-300"></span>
+              A <span class="text-[10px] text-slate-300 font-normal hidden sm:inline">(Stems &amp; Ch.)</span>
+</button>
+<button class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition">
+              B <span class="text-[10px] text-slate-500 font-normal hidden sm:inline">(AI Vocals)</span>
+</button>
+<button class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition">
+              C <span class="text-[10px] text-slate-500 font-normal hidden sm:inline">(Synths)</span>
+</button>
+<button class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition">
+              D <span class="text-[10px] text-slate-500 font-normal hidden sm:inline">(Live FX)</span>
+</button>
+</div>
+</div>
+<!-- Sync & Clock Telemetry -->
+<div class="flex items-center gap-4 bg-slate-900/60 border border-slate-800 px-4 py-2 rounded-xl font-mono text-xs text-slate-300">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#00f2fe]"></span>
+<span class="text-cyan-400 font-bold">1/16 Sync</span>
+</div>
+<span class="text-slate-700">|</span>
+<div class="text-slate-300"><span class="font-bold text-slate-100">128.0</span> BPM Clock</div>
+<span class="text-slate-700">|</span>
+<div class="text-emerald-400 font-semibold flex items-center gap-1">
+<span class="text-[10px] px-1.5 py-0.2 bg-emerald-500/10 border border-emerald-500/30 rounded">QUANTIZE: ON</span>
+</div>
+<span class="text-slate-700">|</span>
+<div class="text-slate-400 text-[11px]">Latency: <span class="text-cyan-300 font-bold">1.2ms</span></div>
+</div>
+<!-- Mode Toggles -->
+<div class="flex items-center gap-2">
+<div class="inline-flex p-1 bg-black/40 border border-slate-800 rounded-xl text-xs font-mono">
+<button class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition">Strip View</button>
+<button class="px-2.5 py-1 rounded-lg bg-pink-500/20 text-pink-300 border border-pink-500/40">Multi-Channel</button>
+<button class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition">DSP Inserts</button>
+<button class="px-2.5 py-1 rounded-lg text-cyan-400 border border-cyan-400/20 bg-cyan-400/10">Post-Fader</button>
+</div>
+</div>
+<!-- Rotary Control Readouts -->
+<div class="flex items-center gap-5 pl-2 border-l border-slate-800/80">
+<!-- Cutoff Dial Simulation -->
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full border border-cyan-400/50 bg-slate-900 relative flex items-center justify-center shadow-[0_0_10px_rgba(0,242,254,0.2)]">
+<div class="w-1 h-3.5 bg-cyan-400 rounded-full absolute -top-0.5 rotate-45 transform origin-bottom"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-slate-800 border border-cyan-300/30"></div>
+</div>
+<div class="font-mono text-[10px] leading-tight">
+<span class="text-slate-400 block uppercase">Cutoff</span>
+<span class="text-cyan-300 font-bold">4.2 kHz</span>
+</div>
+</div>
+<!-- Resonance Dial Simulation -->
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full border border-pink-400/50 bg-slate-900 relative flex items-center justify-center shadow-[0_0_10px_rgba(255,0,127,0.2)]">
+<div class="w-1 h-3.5 bg-pink-500 rounded-full absolute -top-0.5 -rotate-30 transform origin-bottom"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-slate-800 border border-pink-400/30"></div>
+</div>
+<div class="font-mono text-[10px] leading-tight">
+<span class="text-slate-400 block uppercase">Reso</span>
+<span class="text-pink-400 font-bold">28 %</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Matrix & Rack Split Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
+<!-- BEGIN: Vertical Track Channel Strips List (Cols 1-8) -->
+<section class="xl:col-span-8 glass-panel rounded-2xl p-4 sm:p-5 border border-slate-800/80 shadow-2xl flex flex-col justify-between" data-purpose="track-channel-strips-container">
+<!-- Section Header with Status Bar -->
+<div class="flex flex-wrap items-center justify-between mb-4 px-1 pb-3 border-b border-slate-800/90 gap-2">
+<div class="flex items-center gap-3">
+<div class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_10px_#00f2fe] animate-pulse"></div>
+<h2 class="text-sm font-bold uppercase tracking-wider text-slate-100 flex items-center gap-2">
+            Multi-Track Channel Strip Racks <span class="text-slate-500 font-mono text-xs font-normal">| Live Inserts &amp; Routing</span>
+</h2>
+</div>
+<div class="flex items-center gap-3 text-xs font-mono text-slate-400">
+<span class="flex items-center gap-1.5 text-slate-300">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-blink-green inline-block"></span>
+<span class="text-[11px]">Green: Active</span>
+</span>
+<span class="text-slate-600">•</span>
+<span class="flex items-center gap-1.5 text-slate-400">
+<span class="w-2 h-2 rounded-full bg-amber-400 inline-block shadow-[0_0_4px_#f59e0b]"></span>
+<span class="text-[11px]">Amber: Solo</span>
+</span>
+<span class="text-slate-600">•</span>
+<span class="flex items-center gap-1.5 text-slate-400">
+<span class="w-2 h-2 rounded-full bg-rose-500 inline-block shadow-[0_0_4px_#ef4444]"></span>
+<span class="text-[11px]">Red: Inactive / Muted</span>
+</span>
+<span class="text-slate-600">•</span>
+<span class="text-cyan-400 font-medium bg-cyan-950/40 border border-cyan-500/30 px-2 py-0.5 rounded text-[10px]">DSP Sync Engaged</span>
+</div>
+</div>
+<!-- Vertical Stacking Container with Custom Scroll for Ergonomic Strip Navigation -->
+<div class="flex flex-col gap-3 max-h-[640px] overflow-y-auto pr-1.5 custom-scroll select-none" id="track-channel-list">
+<!-- TRACK STRIP 01: Kick Sub-Punch -->
+<div class="track-strip relative rounded-xl p-3.5 border border-cyan-400/40 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-slate-950/80 shadow-strip-glow transition-all hover:border-cyan-400/70" data-track-id="1">
+<!-- Strip top line: Header (Track Info & Top-Right Controls: Pan Slider, Solo, Mute) -->
+<div class="flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 mb-2.5">
+<!-- Left: Index + Title + BPM info badge -->
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="font-mono text-xs font-extrabold text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-400/40 shrink-0">CH 01</span>
+<div class="truncate">
+<h3 class="text-sm font-bold text-white tracking-wide truncate flex items-center gap-2">
+<span>Kick Sub-Punch</span>
+<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+</h3>
+</div>
+<div class="hidden sm:flex items-center gap-2 font-mono text-[10px] text-slate-400 shrink-0 ml-1">
+<span class="px-1.5 py-0.5 rounded bg-black/50 border border-slate-800 text-cyan-400">128 BPM</span>
+<span class="text-slate-600">•</span>
+<span class="text-slate-400">Sync 1/16</span>
+<span class="text-slate-600">•</span>
+<span class="text-cyan-300/80">4-Bar Loop</span>
+</div>
+</div>
+<!-- Top-Right Controls: Horizontal Slider Panner, Solo & Mute Buttons -->
+<div class="flex items-center gap-2.5 shrink-0 ml-auto">
+<!-- Visual Horizontal Slider Panner -->
+<div class="pan-slider-container flex items-center gap-1.5 bg-black/60 px-2.5 py-1 rounded-lg border border-cyan-500/30 font-mono text-[11px] shadow-inner" data-color="cyan">
+<span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">PAN</span>
+<div class="relative flex items-center w-20 h-4">
+<div class="absolute inset-x-0 h-1 bg-slate-800 rounded-full border border-slate-700/60 pointer-events-none">
+<div class="absolute left-1/2 top-0 bottom-0 w-[1px] bg-slate-500 -translate-x-1/2"></div>
+</div>
+<input class="pan-slider relative z-10 w-full h-4 bg-transparent appearance-none cursor-pointer" max="50" min="-50" step="1" type="range" value="0"/>
+</div>
+<span class="pan-display-val w-7 text-center font-bold text-cyan-300 bg-cyan-950/80 px-1 py-0.5 rounded border border-cyan-500/30 text-[10px]">C</span>
+</div>
+<!-- Solo Button -->
+<button class="solo-toggle-btn flex items-center gap-1 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-black/60 border border-slate-700/80 hover:border-amber-400/60 text-slate-400 hover:text-amber-300 transition shadow-inner group" data-solo="false">
+<span class="solo-indicator w-2 h-2 rounded-full bg-slate-600 transition-all"></span>
+<span class="solo-text font-bold">S</span>
+</button>
+<!-- Mute Button (Mute OFF = Green dot, Mute ON = Glowing Red dot) -->
+<button class="mute-toggle-btn flex items-center gap-1.5 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-black/60 border border-slate-700/80 hover:border-slate-500 transition shadow-inner group" data-muted="false">
+<span class="indicator-dot w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] transition-all"></span>
+<span class="mute-text font-bold text-slate-300">MUTE</span>
+</button>
+</div>
+</div>
+<!-- Strip bottom line: Module Action Buttons with Upgraded Gain Rotary Knob & Text Input -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800/70 font-mono text-xs">
+<!-- Module 1: EQ / PEQ (Active state: Green blinking) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">EQ / PEQ</span>
+</div>
+<span class="mod-val text-[10px] text-cyan-300 font-medium">4-Band</span>
+</button>
+<!-- Module 2: Precision Gain Rotary Knob + Editable Direct dB Text Input -->
+<div class="gain-rotary-container flex items-center justify-between px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-800 relative group hover:border-cyan-500/40 transition h-14">
+<div class="flex items-center gap-1.5">
+<button class="module-btn flex items-center gap-1.5 text-left" data-active="true">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200 text-xs">GAIN</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<!-- Precision Rotary Knob Dial -->
+<div class="rotary-dial relative w-9 h-9 cursor-ns-resize flex items-center justify-center shrink-0" data-gain="2.0" data-max="12" data-min="-12" title="Drag vertical to adjust Gain">
+<svg class="w-9 h-9 -rotate-90 transform" viewbox="0 0 36 36">
+<!-- Background circle arc -->
+<path class="text-slate-800" d="M18 3.5 a 14.5 14.5 0 1 1 0 29 a 14.5 14.5 0 1 1 0 -29" fill="none" stroke="currentColor" stroke-dasharray="72 20" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- Active dynamic neon cyan arc -->
+<path class="knob-arc-active text-cyan-400 drop-shadow-[0_0_4px_#00f2fe]" d="M18 3.5 a 14.5 14.5 0 1 1 0 29 a 14.5 14.5 0 1 1 0 -29" fill="none" stroke="currentColor" stroke-dasharray="52, 100" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+<!-- Inner Dial Cap & Pointer needle -->
+<div class="absolute inset-1.5 rounded-full bg-slate-900 border border-slate-700/80 flex items-center justify-center shadow-inner">
+<div class="knob-pointer w-0.5 h-3 bg-cyan-400 rounded-full transform origin-bottom -translate-y-1 shadow-[0_0_5px_#00f2fe]" style="transform: rotate(30deg) translateY(-3px);"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-slate-800 border border-cyan-400/50 absolute"></div>
+</div>
+</div>
+<!-- Editable dB Text Input with keyboard focus styling -->
+<div class="flex flex-col items-end">
+<input class="gain-direct-input w-14 px-1 py-0.5 bg-black/60 border border-cyan-500/30 rounded text-[11px] font-mono font-bold text-cyan-400 text-center focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400 focus:bg-slate-900 transition" step="0.1" type="text" value="+2.0 dB"/>
+<span class="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Trim</span>
+</div>
+</div>
+</div>
+<!-- Module 3: Comp / Gate (Active state: Green blinking) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">COMP/GATE</span>
+</div>
+<span class="mod-val text-[10px] text-cyan-300 font-medium">3:1 Dyn</span>
+</button>
+<!-- Module 4: FX (Inactive state: Solid Red indicator) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="false">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_3px_#ef4444]"></span>
+<span class="font-bold text-slate-400">FX</span>
+</div>
+<span class="mod-val text-[10px] text-slate-500 font-medium">Bypass</span>
+</button>
+</div>
+</div>
+<!-- TRACK STRIP 02: Snare Hyper-Clap -->
+<div class="track-strip relative rounded-xl p-3.5 border border-pink-500/40 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-slate-950/80 transition-all hover:border-pink-500/70" data-track-id="2">
+<div class="flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 mb-2.5">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="font-mono text-xs font-extrabold text-pink-400 bg-pink-950/80 px-2 py-0.5 rounded border border-pink-500/40 shrink-0">CH 02</span>
+<div class="truncate">
+<h3 class="text-sm font-bold text-white tracking-wide truncate">Snare Hyper-Clap</h3>
+</div>
+<div class="hidden sm:flex items-center gap-2 font-mono text-[10px] text-slate-400 shrink-0 ml-1">
+<span class="px-1.5 py-0.5 rounded bg-black/50 border border-slate-800 text-pink-400">128 BPM</span>
+<span class="text-slate-600">•</span>
+<span class="text-slate-400">Transient Clamp</span>
+<span class="text-slate-600">•</span>
+<span class="text-pink-300/80">One-Shot</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 ml-auto">
+<!-- Horizontal Slider Panner -->
+<div class="pan-slider-container flex items-center gap-1.5 bg-black/60 px-2.5 py-1 rounded-lg border border-pink-500/30 font-mono text-[11px] shadow-inner" data-color="pink">
+<span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">PAN</span>
+<div class="relative flex items-center w-20 h-4">
+<div class="absolute inset-x-0 h-1 bg-slate-800 rounded-full border border-slate-700/60 pointer-events-none">
+<div class="absolute left-1/2 top-0 bottom-0 w-[1px] bg-slate-500 -translate-x-1/2"></div>
+</div>
+<input class="pan-slider relative z-10 w-full h-4 bg-transparent appearance-none cursor-pointer" max="50" min="-50" step="1" type="range" value="15"/>
+</div>
+<span class="pan-display-val w-7 text-center font-bold text-pink-300 bg-pink-950/80 px-1 py-0.5 rounded border border-pink-500/30 text-[10px]">R15</span>
+</div>
+<!-- Solo Button -->
+<button class="solo-toggle-btn flex items-center gap-1 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-black/60 border border-slate-700/80 hover:border-amber-400/60 text-slate-400 hover:text-amber-300 transition shadow-inner group" data-solo="false">
+<span class="solo-indicator w-2 h-2 rounded-full bg-slate-600 transition-all"></span>
+<span class="solo-text font-bold">S</span>
+</button>
+<!-- Mute Button -->
+<button class="mute-toggle-btn flex items-center gap-1.5 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-black/60 border border-slate-700/80 hover:border-slate-500 transition shadow-inner group" data-muted="false">
+<span class="indicator-dot w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] transition-all"></span>
+<span class="mute-text font-bold text-slate-300">MUTE</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800/70 font-mono text-xs">
+<!-- EQ (Active) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">EQ / PEQ</span>
+</div>
+<span class="mod-val text-[10px] text-pink-300 font-medium">Bright Clp</span>
+</button>
+<!-- Precision Gain Rotary Knob + Direct Input -->
+<div class="gain-rotary-container flex items-center justify-between px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-800 relative group hover:border-pink-500/40 transition h-14">
+<div class="flex items-center gap-1.5">
+<button class="module-btn flex items-center gap-1.5 text-left" data-active="true">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200 text-xs">GAIN</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<div class="rotary-dial relative w-9 h-9 cursor-ns-resize flex items-center justify-center shrink-0" data-gain="-0.2" data-max="12" data-min="-12" title="Drag vertical to adjust Gain">
+<svg class="w-9 h-9 -rotate-90 transform" viewbox="0 0 36 36">
+<path class="text-slate-800" d="M18 3.5 a 14.5 14.5 0 1 1 0 29 a 14.5 14.5 0 1 1 0 -29" fill="none" stroke="currentColor" stroke-dasharray="72 20" stroke-linecap="round" stroke-width="2.5"></path>
+<path class="knob-arc-active text-pink-400 drop-shadow-[0_0_4px_#ff007f]" d="M18 3.5 a 14.5 14.5 0 1 1 0 29 a 14.5 14.5 0 1 1 0 -29" fill="none" stroke="currentColor" stroke-dasharray="45, 100" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+<div class="absolute inset-1.5 rounded-full bg-slate-900 border border-slate-700/80 flex items-center justify-center shadow-inner">
+<div class="knob-pointer w-0.5 h-3 bg-pink-400 rounded-full transform origin-bottom -translate-y-1 shadow-[0_0_5px_#ff007f]" style="transform: rotate(-3deg) translateY(-3px);"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-slate-800 border border-pink-400/50 absolute"></div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<input class="gain-direct-input w-14 px-1 py-0.5 bg-black/60 border border-pink-500/30 rounded text-[11px] font-mono font-bold text-pink-400 text-center focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 focus:bg-slate-900 transition" step="0.1" type="text" value="-0.2 dB"/>
+<span class="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Trim</span>
+</div>
+</div>
+</div>
+<!-- Comp/Gate (Inactive: Red dot) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="false">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_3px_#ef4444]"></span>
+<span class="font-bold text-slate-400">COMP/GATE</span>
+</div>
+<span class="mod-val text-[10px] text-slate-500 font-medium">Off</span>
+</button>
+<!-- FX (Active: Green blinking) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">FX</span>
+</div>
+<span class="mod-val text-[10px] text-pink-300 font-medium">Plate Reverb</span>
+</button>
+</div>
+</div>
+<!-- TRACK STRIP 03: Hi-Hat Cyber Roll -->
+<div class="track-strip relative rounded-xl p-3.5 border border-blue-500/40 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-slate-950/80 transition-all hover:border-blue-400/70" data-track-id="3">
+<div class="flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 mb-2.5">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="font-mono text-xs font-extrabold text-blue-300 bg-blue-950/80 px-2 py-0.5 rounded border border-blue-400/40 shrink-0">CH 03</span>
+<div class="truncate">
+<h3 class="text-sm font-bold text-white tracking-wide truncate">Hi-Hat Cyber Roll</h3>
+</div>
+<div class="hidden sm:flex items-center gap-2 font-mono text-[10px] text-slate-400 shrink-0 ml-1">
+<span class="px-1.5 py-0.5 rounded bg-black/50 border border-slate-800 text-blue-300">128 BPM</span>
+<span class="text-slate-600">•</span>
+<span class="text-slate-400">1/32 Multi</span>
+<span class="text-slate-600">•</span>
+<span class="text-blue-300/80">Sync 1/16</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 ml-auto">
+<!-- Horizontal Slider Panner -->
+<div class="pan-slider-container flex items-center gap-1.5 bg-black/60 px-2.5 py-1 rounded-lg border border-blue-500/30 font-mono text-[11px] shadow-inner" data-color="blue">
+<span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">PAN</span>
+<div class="relative flex items-center w-20 h-4">
+<div class="absolute inset-x-0 h-1 bg-slate-800 rounded-full border border-slate-700/60 pointer-events-none">
+<div class="absolute left-1/2 top-0 bottom-0 w-[1px] bg-slate-500 -translate-x-1/2"></div>
+</div>
+<input class="pan-slider relative z-10 w-full h-4 bg-transparent appearance-none cursor-pointer" max="50" min="-50" step="1" type="range" value="-35"/>
+</div>
+<span class="pan-display-val w-7 text-center font-bold text-blue-300 bg-blue-950/80 px-1 py-0.5 rounded border border-blue-400/30 text-[10px]">L35</span>
+</div>
+<!-- Solo Button -->
+<button class="solo-toggle-btn flex items-center gap-1 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-black/60 border border-slate-700/80 hover:border-amber-400/60 text-slate-400 hover:text-amber-300 transition shadow-inner group" data-solo="false">
+<span class="solo-indicator w-2 h-2 rounded-full bg-slate-600 transition-all"></span>
+<span class="solo-text font-bold">S</span>
+</button>
+<!-- Mute Button -->
+<button class="mute-toggle-btn flex items-center gap-1.5 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-black/60 border border-slate-700/80 hover:border-slate-500 transition shadow-inner group" data-muted="false">
+<span class="indicator-dot w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] transition-all"></span>
+<span class="mute-text font-bold text-slate-300">MUTE</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800/70 font-mono text-xs">
+<!-- EQ (Active) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">EQ / PEQ</span>
+</div>
+<span class="mod-val text-[10px] text-blue-300 font-medium">HP 8.5kHz</span>
+</button>
+<!-- Gain Rotary Knob + Direct Input -->
+<div class="gain-rotary-container flex items-center justify-between px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-800 relative group hover:border-blue-400/40 transition h-14">
+<div class="flex items-center gap-1.5">
+<button class="module-btn flex items-center gap-1.5 text-left" data-active="true">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200 text-xs">GAIN</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<div class="rotary-dial relative w-9 h-9 cursor-ns-resize flex items-center justify-center shrink-0" data-gain="-1.5" data-max="12" data-min="-12" title="Drag vertical to adjust Gain">
+<svg class="w-9 h-9 -rotate-90 transform" viewbox="0 0 36 36">
+<path class="text-slate-800" d="M18 3.5 a 14.5 14.5 0 1 1 0 29 a 14.5 14.5 0 1 1 0 -29" fill="none" stroke="currentColor" stroke-dasharray="72 20" stroke-linecap="round" stroke-width="2.5"></path>
+<path class="knob-arc-active text-blue-400 drop-shadow-[0_0_4px_#38bdf8]" d="M18 3.5 a 14.5 14.5 0 1 1 0 29 a 14.5 14.5 0 1 1 0 -29" fill="none" stroke="currentColor" stroke-dasharray="38, 100" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+<div class="absolute inset-1.5 rounded-full bg-slate-900 border border-slate-700/80 flex items-center justify-center shadow-inner">
+<div class="knob-pointer w-0.5 h-3 bg-blue-400 rounded-full transform origin-bottom -translate-y-1 shadow-[0_0_5px_#38bdf8]" style="transform: rotate(-22deg) translateY(-3px);"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-slate-800 border border-blue-400/50 absolute"></div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<input class="gain-direct-input w-14 px-1 py-0.5 bg-black/60 border border-blue-500/30 rounded text-[11px] font-mono font-bold text-blue-300 text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 focus:bg-slate-900 transition" step="0.1" type="text" value="-1.5 dB"/>
+<span class="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Trim</span>
+</div>
+</div>
+</div>
+<!-- Comp/Gate (Active) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">COMP/GATE</span>
+</div>
+<span class="mod-val text-[10px] text-blue-300 font-medium">Fast Gate</span>
+</button>
+<!-- FX (Active) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">FX</span>
+</div>
+<span class="mod-val text-[10px] text-blue-300 font-medium">Stereo Pan</span>
+</button>
+</div>
+</div>
+<!-- TRACK STRIP 04: 808 Neuro Glide (Solo ACTIVE Demonstration) -->
+<div class="track-strip relative rounded-xl p-3.5 border border-amber-400/60 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-slate-950/80 shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all hover:border-amber-400/80" data-track-id="4">
+<div class="flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 mb-2.5">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="font-mono text-xs font-extrabold text-purple-300 bg-purple-950/80 px-2 py-0.5 rounded border border-purple-500/40 shrink-0">CH 04</span>
+<div class="truncate">
+<h3 class="text-sm font-bold text-white tracking-wide truncate flex items-center gap-2">
+<span>808 Neuro Glide</span>
+<span class="text-[9px] font-mono font-bold text-amber-400 bg-amber-950/80 border border-amber-500/40 px-1.5 py-0.2 rounded animate-pulse">SOLO ISOLATED</span>
+</h3>
+</div>
+<div class="hidden sm:flex items-center gap-2 font-mono text-[10px] text-slate-400 shrink-0 ml-1">
+<span class="px-1.5 py-0.5 rounded bg-black/50 border border-slate-800 text-purple-300">128 BPM</span>
+<span class="text-slate-600">•</span>
+<span class="text-slate-400">Pitch F# (Mono)</span>
+<span class="text-slate-600">•</span>
+<span class="text-purple-300/80">Sub 38Hz</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 ml-auto">
+<!-- Horizontal Slider Panner -->
+<div class="pan-slider-container flex items-center gap-1.5 bg-black/60 px-2.5 py-1 rounded-lg border border-purple-500/30 font-mono text-[11px] shadow-inner" data-color="purple">
+<span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">PAN</span>
+<div class="relative flex items-center w-20 h-4">
+<div class="absolute inset-x-0 h-1 bg-slate-800 rounded-full border border-slate-700/60 pointer-events-none">
+<div class="absolute left-1/2 top-0 bottom-0 w-[1px] bg-slate-500 -translate-x-1/2"></div>
+</div>
+<input class="pan-slider relative z-10 w-full h-4 bg-transparent appearance-none cursor-pointer" max="50" min="-50" step="1" type="range" value="0"/>
+</div>
+<span class="pan-display-val w-7 text-center font-bold text-purple-300 bg-purple-950/80 px-1 py-0.5 rounded border border-purple-500/30 text-[10px]">C</span>
+</div>
+<!-- Solo Button ACTIVE State: Amber/Yellow Glow with active indicator -->
+<button class="solo-toggle-btn flex items-center gap-1 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/80 shadow-glow-amber text-amber-300 transition shadow-inner group" data-solo="true">
+<span class="solo-indicator w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b] animate-ping transition-all"></span>
+<span class="solo-text font-black text-amber-200">SOLO</span>
+</button>
+<!-- Mute Button -->
+<button class="mute-toggle-btn flex items-center gap-1.5 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-black/60 border border-slate-700/80 hover:border-slate-500 transition shadow-inner group" data-muted="false">
+<span class="indicator-dot w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] transition-all"></span>
+<span class="mute-text font-bold text-slate-300">MUTE</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800/70 font-mono text-xs">
+<!-- EQ (Active) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">EQ / PEQ</span>
+</div>
+<span class="mod-val text-[10px] text-purple-300 font-medium">Sub Boost</span>
+</button>
+<!-- Gain Rotary Knob + Direct Input -->
+<div class="gain-rotary-container flex items-center justify-between px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-800 relative group hover:border-purple-400/40 transition h-14">
+<div class="flex items-center gap-1.5">
+<button class="module-btn flex items-center gap-1.5 text-left" data-active="true">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200 text-xs">GAIN</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<div class="rotary-dial relative w-9 h-9 cursor-ns-resize flex items-center justify-center shrink-0" data-gain="-1.2" data-max="12" data-min="-12" title="Drag vertical to adjust Gain">
+<svg class="w-9 h-9 -rotate-90 transform" viewbox="0 0 36 36">
+<path class="text-slate-800" d="M18 3.5 a 14.5 14.5 0 1 1 0 29 a 14.5 14.5 0 1 1 0 -29" fill="none" stroke="currentColor" stroke-dasharray="72 20" stroke-linecap="round" stroke-width="2.5"></path>
+<path class="knob-arc-active text-purple-400 drop-shadow-[0_0_4px_#a855f7]" d="M18 3.5 a 14.5 14.5 0 1 1 0 29 a 14.5 14.5 0 1 1 0 -29" fill="none" stroke="currentColor" stroke-dasharray="40, 100" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+<div class="absolute inset-1.5 rounded-full bg-slate-900 border border-slate-700/80 flex items-center justify-center shadow-inner">
+<div class="knob-pointer w-0.5 h-3 bg-purple-400 rounded-full transform origin-bottom -translate-y-1 shadow-[0_0_5px_#a855f7]" style="transform: rotate(-18deg) translateY(-3px);"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-slate-800 border border-purple-400/50 absolute"></div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<input class="gain-direct-input w-14 px-1 py-0.5 bg-black/60 border border-purple-500/30 rounded text-[11px] font-mono font-bold text-purple-300 text-center focus:outline-none focus:ring-1 focus:ring-purple-400 focus:border-purple-400 focus:bg-slate-900 transition" step="0.1" type="text" value="-1.2 dB"/>
+<span class="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Trim</span>
+</div>
+</div>
+</div>
+<!-- Comp/Gate (Active) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">COMP/GATE</span>
+</div>
+<span class="mod-val text-[10px] text-purple-300 font-medium">Sidechain</span>
+</button>
+<!-- FX (Inactive) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="false">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_3px_#ef4444]"></span>
+<span class="font-bold text-slate-400">FX</span>
+</div>
+<span class="mod-val text-[10px] text-slate-500 font-medium">Bypass</span>
+</button>
+</div>
+</div>
+<!-- TRACK STRIP 05: AI Vocal Hook -->
+<div class="track-strip relative rounded-xl p-3.5 border border-amber-400/40 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-slate-950/80 transition-all hover:border-amber-400/70" data-track-id="5">
+<div class="flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 mb-2.5">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="font-mono text-xs font-extrabold text-amber-300 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-400/40 shrink-0">CH 05</span>
+<div class="truncate">
+<h3 class="text-sm font-bold text-white tracking-wide truncate">AI Vocal Hook "Yeah"</h3>
+</div>
+<div class="hidden sm:flex items-center gap-2 font-mono text-[10px] text-slate-400 shrink-0 ml-1">
+<span class="px-1.5 py-0.5 rounded bg-black/50 border border-slate-800 text-amber-300">128 BPM</span>
+<span class="text-slate-600">•</span>
+<span class="text-slate-400">Neural Formant</span>
+<span class="text-slate-600">•</span>
+<span class="text-amber-300/80">Gate Mode</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 ml-auto">
+<!-- Horizontal Slider Panner -->
+<div class="pan-slider-container flex items-center gap-1.5 bg-black/60 px-2.5 py-1 rounded-lg border border-amber-500/30 font-mono text-[11px] shadow-inner" data-color="amber">
+<span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">PAN</span>
+<div class="relative flex items-center w-20 h-4">
+<div class="absolute inset-x-0 h-1 bg-slate-800 rounded-full border border-slate-700/60 pointer-events-none">
+<div class="absolute left-1/2 top-0 bottom-0 w-[1px] bg-slate-500 -translate-x-1/2"></div>
+</div>
+<input class="pan-slider relative z-10 w-full h-4 bg-transparent appearance-none cursor-pointer" max="50" min="-50" step="1" type="range" value="0"/>
+</div>
+<span class="pan-display-val w-7 text-center font-bold text-amber-300 bg-amber-950/80 px-1 py-0.5 rounded border border-amber-500/30 text-[10px]">C</span>
+</div>
+<!-- Solo Button -->
+<button class="solo-toggle-btn flex items-center gap-1 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-black/60 border border-slate-700/80 hover:border-amber-400/60 text-slate-400 hover:text-amber-300 transition shadow-inner group" data-solo="false">
+<span class="solo-indicator w-2 h-2 rounded-full bg-slate-600 transition-all"></span>
+<span class="solo-text font-bold">S</span>
+</button>
+<!-- Mute Button -->
+<button class="mute-toggle-btn flex items-center gap-1.5 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-black/60 border border-slate-700/80 hover:border-slate-500 transition shadow-inner group" data-muted="false">
+<span class="indicator-dot w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] transition-all"></span>
+<span class="mute-text font-bold text-slate-300">MUTE</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800/70 font-mono text-xs">
+<!-- EQ (Active) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">EQ / PEQ</span>
+</div>
+<span class="mod-val text-[10px] text-amber-300 font-medium">Air 12kHz</span>
+</button>
+<!-- Gain Rotary Knob + Direct Input -->
+<div class="gain-rotary-container flex items-center justify-between px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-800 relative group hover:border-amber-400/40 transition h-14">
+<div class="flex items-center gap-1.5">
+<button class="module-btn flex items-center gap-1.5 text-left" data-active="true">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200 text-xs">GAIN</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<div class="rotary-dial relative w-9 h-9 cursor-ns-resize flex items-center justify-center shrink-0" data-gain="1.8" data-max="12" data-min="-12" title="Drag vertical to adjust Gain">
+<svg class="w-9 h-9 -rotate-90 transform" viewbox="0 0 36 36">
+<path class="text-slate-800" d="M18 3.5 a 14.5 14.5 0 1 1 0 29 a 14.5 14.5 0 1 1 0 -29" fill="none" stroke="currentColor" stroke-dasharray="72 20" stroke-linecap="round" stroke-width="2.5"></path>
+<path class="knob-arc-active text-amber-400 drop-shadow-[0_0_4px_#f59e0b]" d="M18 3.5 a 14.5 14.5 0 1 1 0 29 a 14.5 14.5 0 1 1 0 -29" fill="none" stroke="currentColor" stroke-dasharray="51, 100" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+<div class="absolute inset-1.5 rounded-full bg-slate-900 border border-slate-700/80 flex items-center justify-center shadow-inner">
+<div class="knob-pointer w-0.5 h-3 bg-amber-400 rounded-full transform origin-bottom -translate-y-1 shadow-[0_0_5px_#f59e0b]" style="transform: rotate(27deg) translateY(-3px);"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-slate-800 border border-amber-400/50 absolute"></div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<input class="gain-direct-input w-14 px-1 py-0.5 bg-black/60 border border-amber-500/30 rounded text-[11px] font-mono font-bold text-amber-300 text-center focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400 focus:bg-slate-900 transition" step="0.1" type="text" value="+1.8 dB"/>
+<span class="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Trim</span>
+</div>
+</div>
+</div>
+<!-- Comp/Gate (Active) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">COMP/GATE</span>
+</div>
+<span class="mod-val text-[10px] text-amber-300 font-medium">Opto Comp</span>
+</button>
+<!-- FX (Active: Delay) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">FX</span>
+</div>
+<span class="mod-val text-[10px] text-amber-300 font-medium">Ping-Pong</span>
+</button>
+</div>
+</div>
+<!-- TRACK STRIP 06: Acid Synth Arp -->
+<div class="track-strip relative rounded-xl p-3.5 border border-lime-400/40 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-slate-950/80 transition-all hover:border-lime-400/70" data-track-id="6">
+<div class="flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 mb-2.5">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="font-mono text-xs font-extrabold text-lime-300 bg-lime-950/80 px-2 py-0.5 rounded border border-lime-400/40 shrink-0">CH 06</span>
+<div class="truncate">
+<h3 class="text-sm font-bold text-white tracking-wide truncate">Acid Synth Arp</h3>
+</div>
+<div class="hidden sm:flex items-center gap-2 font-mono text-[10px] text-slate-400 shrink-0 ml-1">
+<span class="px-1.5 py-0.5 rounded bg-black/50 border border-slate-800 text-lime-300">128 BPM</span>
+<span class="text-slate-600">•</span>
+<span class="text-slate-400">16-Step Arp</span>
+<span class="text-slate-600">•</span>
+<span class="text-lime-300/80">Sync 1/16</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 shrink-0 ml-auto">
+<!-- Horizontal Slider Panner -->
+<div class="pan-slider-container flex items-center gap-1.5 bg-black/60 px-2.5 py-1 rounded-lg border border-lime-500/30 font-mono text-[11px] shadow-inner" data-color="lime">
+<span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">PAN</span>
+<div class="relative flex items-center w-20 h-4">
+<div class="absolute inset-x-0 h-1 bg-slate-800 rounded-full border border-slate-700/60 pointer-events-none">
+<div class="absolute left-1/2 top-0 bottom-0 w-[1px] bg-slate-500 -translate-x-1/2"></div>
+</div>
+<input class="pan-slider relative z-10 w-full h-4 bg-transparent appearance-none cursor-pointer" max="50" min="-50" step="1" type="range" value="30"/>
+</div>
+<span class="pan-display-val w-7 text-center font-bold text-lime-300 bg-lime-950/80 px-1 py-0.5 rounded border border-lime-500/30 text-[10px]">R30</span>
+</div>
+<!-- Solo Button -->
+<button class="solo-toggle-btn flex items-center gap-1 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-black/60 border border-slate-700/80 hover:border-amber-400/60 text-slate-400 hover:text-amber-300 transition shadow-inner group" data-solo="false">
+<span class="solo-indicator w-2 h-2 rounded-full bg-slate-600 transition-all"></span>
+<span class="solo-text font-bold">S</span>
+</button>
+<!-- Mute Button -->
+<button class="mute-toggle-btn flex items-center gap-1.5 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-black/60 border border-slate-700/80 hover:border-slate-500 transition shadow-inner group" data-muted="false">
+<span class="indicator-dot w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] transition-all"></span>
+<span class="mute-text font-bold text-slate-300">MUTE</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800/70 font-mono text-xs">
+<!-- EQ (Active) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">EQ / PEQ</span>
+</div>
+<span class="mod-val text-[10px] text-lime-300 font-medium">303 Reso</span>
+</button>
+<!-- Gain Rotary Knob + Direct Input -->
+<div class="gain-rotary-container flex items-center justify-between px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-800 relative group hover:border-lime-400/40 transition h-14">
+<div class="flex items-center gap-1.5">
+<button class="module-btn flex items-center gap-1.5 text-left" data-active="true">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200 text-xs">GAIN</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<div class="rotary-dial relative w-9 h-9 cursor-ns-resize flex items-center justify-center shrink-0" data-gain="0.0" data-max="12" data-min="-12" title="Drag vertical to adjust Gain">
+<svg class="w-9 h-9 -rotate-90 transform" viewbox="0 0 36 36">
+<path class="text-slate-800" d="M18 3.5 a 14.5 14.5 0 1 1 0 29 a 14.5 14.5 0 1 1 0 -29" fill="none" stroke="currentColor" stroke-dasharray="72 20" stroke-linecap="round" stroke-width="2.5"></path>
+<path class="knob-arc-active text-lime-400 drop-shadow-[0_0_4px_#84cc16]" d="M18 3.5 a 14.5 14.5 0 1 1 0 29 a 14.5 14.5 0 1 1 0 -29" fill="none" stroke="currentColor" stroke-dasharray="46, 100" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+<div class="absolute inset-1.5 rounded-full bg-slate-900 border border-slate-700/80 flex items-center justify-center shadow-inner">
+<div class="knob-pointer w-0.5 h-3 bg-lime-400 rounded-full transform origin-bottom -translate-y-1 shadow-[0_0_5px_#84cc16]" style="transform: rotate(0deg) translateY(-3px);"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-slate-800 border border-lime-400/50 absolute"></div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<input class="gain-direct-input w-14 px-1 py-0.5 bg-black/60 border border-lime-500/30 rounded text-[11px] font-mono font-bold text-lime-300 text-center focus:outline-none focus:ring-1 focus:ring-lime-400 focus:border-lime-400 focus:bg-slate-900 transition" step="0.1" type="text" value="0.0 dB"/>
+<span class="text-[8px] text-slate-500 uppercase tracking-widest font-mono">Trim</span>
+</div>
+</div>
+</div>
+<!-- Comp/Gate (Inactive: Red dot) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="false">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_3px_#ef4444]"></span>
+<span class="font-bold text-slate-400">COMP/GATE</span>
+</div>
+<span class="mod-val text-[10px] text-slate-500 font-medium">Off</span>
+</button>
+<!-- FX (Active: Distortion/Drive) -->
+<button class="module-btn flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-600 transition h-14" data-active="true">
+<div class="flex items-center gap-2">
+<span class="mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green"></span>
+<span class="font-bold text-slate-200">FX</span>
+</div>
+<span class="mod-val text-[10px] text-lime-300 font-medium">Tube Drive</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- END: Vertical Track Channel Strips List -->
+<!-- BEGIN: Right Sidebar Rack (XY Kaoss & Stem Faders) (Cols 9-12) -->
+<aside class="xl:col-span-4 flex flex-col gap-4" data-purpose="fx-chain-stem-rack">
+<!-- XY Kaoss Pad & Bitcrusher -->
+<div class="glass-panel rounded-2xl p-4 border border-slate-800/80 shadow-xl flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-pink-500 shadow-[0_0_8px_#ff007f]"></span>
+<h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">AI Dynamic Filter &amp; Bitcrusher</h3>
+</div>
+<span class="text-[10px] font-mono text-cyan-400 bg-cyan-950/50 border border-cyan-500/30 px-2 py-0.5 rounded">Real-time XY</span>
+</div>
+<!-- Kaoss Grid Touch Surface -->
+<div class="w-full h-36 rounded-xl bg-black/60 border border-cyan-500/30 relative overflow-hidden flex items-center justify-center cursor-crosshair group shadow-inner">
+<!-- Grid background -->
+<div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:1.25rem_1.25rem] opacity-35"></div>
+<!-- Crosshair Lines -->
+<div class="absolute left-0 right-0 top-[42%] h-[1px] bg-pink-500/40"></div>
+<div class="absolute top-0 bottom-0 left-[68%] w-[1px] bg-cyan-400/40"></div>
+<!-- Glowing Cursor Node -->
+<div class="absolute top-[42%] left-[68%] -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full border-2 border-cyan-300 bg-pink-500/60 shadow-[0_0_18px_#ff007f] flex items-center justify-center">
+<div class="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#fff]"></div>
+</div>
+<!-- Coordinate Overlay Tag -->
+<div class="absolute bottom-2 left-2 font-mono text-[9px] text-cyan-300 bg-black/80 px-2 py-1 rounded border border-cyan-500/30 backdrop-blur-md">
+                X: 68% Cutoff | Y: 42% Crush (10-bit)
+              </div>
+</div>
+</div>
+<!-- 4 Stem Level Faders with Peak Meters -->
+<div class="glass-panel rounded-2xl p-4 border border-slate-800/80 shadow-xl">
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                Stem Mix &amp; Gain Faders
+              </h3>
+<span class="text-[10px] font-mono text-slate-400">4-Channel Neural Matrix</span>
+</div>
+<!-- 4 Vertical Faders Container -->
+<div class="grid grid-cols-4 gap-2 text-center font-mono">
+<!-- Stem 1: Drums -->
+<div class="flex flex-col items-center bg-black/40 rounded-xl p-2 border border-slate-800">
+<span class="text-[10px] text-slate-400 uppercase font-semibold">Drums</span>
+<span class="text-[10px] text-cyan-400 font-bold mb-2">+0.5 dB</span>
+<!-- Fader Track -->
+<div class="w-7 h-28 bg-slate-900 rounded-lg relative flex items-center justify-center border border-slate-800">
+<div class="w-1.5 h-full bg-slate-800 rounded-full flex flex-col justify-end p-0.5">
+<div class="w-full bg-gradient-to-t from-cyan-500 to-cyan-300 rounded-full h-[78%]"></div>
+</div>
+<!-- Thumb -->
+<div class="absolute top-[22%] w-6 h-3 rounded bg-slate-200 shadow-md border border-cyan-400 flex items-center justify-center">
+<div class="w-3 h-0.5 bg-black"></div>
+</div>
+</div>
+<!-- Buttons -->
+<div class="flex gap-1 mt-2.5">
+<button class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white">M</button>
+<button class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">S</button>
+</div>
+</div>
+<!-- Stem 2: Bass -->
+<div class="flex flex-col items-center bg-black/40 rounded-xl p-2 border border-slate-800">
+<span class="text-[10px] text-slate-400 uppercase font-semibold">Bass</span>
+<span class="text-[10px] text-purple-400 font-bold mb-2">-1.2 dB</span>
+<!-- Fader Track -->
+<div class="w-7 h-28 bg-slate-900 rounded-lg relative flex items-center justify-center border border-slate-800">
+<div class="w-1.5 h-full bg-slate-800 rounded-full flex flex-col justify-end p-0.5">
+<div class="w-full bg-gradient-to-t from-purple-600 to-purple-400 rounded-full h-[65%]"></div>
+</div>
+<div class="absolute top-[35%] w-6 h-3 rounded bg-slate-200 shadow-md border border-purple-400 flex items-center justify-center">
+<div class="w-3 h-0.5 bg-black"></div>
+</div>
+</div>
+<div class="flex gap-1 mt-2.5">
+<button class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white">M</button>
+<button class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white">S</button>
+</div>
+</div>
+<!-- Stem 3: Vocals -->
+<div class="flex flex-col items-center bg-black/40 rounded-xl p-2 border border-slate-800">
+<span class="text-[10px] text-slate-400 uppercase font-semibold">Vocals</span>
+<span class="text-[10px] text-pink-400 font-bold mb-2">+1.8 dB</span>
+<!-- Fader Track -->
+<div class="w-7 h-28 bg-slate-900 rounded-lg relative flex items-center justify-center border border-slate-800">
+<div class="w-1.5 h-full bg-slate-800 rounded-full flex flex-col justify-end p-0.5">
+<div class="w-full bg-gradient-to-t from-pink-600 to-pink-400 rounded-full h-[88%]"></div>
+</div>
+<div class="absolute top-[12%] w-6 h-3 rounded bg-slate-200 shadow-md border border-pink-400 flex items-center justify-center">
+<div class="w-3 h-0.5 bg-black"></div>
+</div>
+</div>
+<div class="flex gap-1 mt-2.5">
+<button class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white">M</button>
+<button class="text-[9px] px-1.5 py-0.5 rounded bg-pink-500/20 text-pink-300 border border-pink-500/40">S</button>
+</div>
+</div>
+<!-- Stem 4: Instruments -->
+<div class="flex flex-col items-center bg-black/40 rounded-xl p-2 border border-slate-800">
+<span class="text-[10px] text-slate-400 uppercase font-semibold">Instr</span>
+<span class="text-[10px] text-emerald-400 font-bold mb-2">-0.0 dB</span>
+<!-- Fader Track -->
+<div class="w-7 h-28 bg-slate-900 rounded-lg relative flex items-center justify-center border border-slate-800">
+<div class="w-1.5 h-full bg-slate-800 rounded-full flex flex-col justify-end p-0.5">
+<div class="w-full bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-full h-[72%]"></div>
+</div>
+<div class="absolute top-[28%] w-6 h-3 rounded bg-slate-200 shadow-md border border-emerald-400 flex items-center justify-center">
+<div class="w-3 h-0.5 bg-black"></div>
+</div>
+</div>
+<div class="flex gap-1 mt-2.5">
+<button class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white">M</button>
+<button class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white">S</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Instant Loop Deck Recorder Actions -->
+<div class="glass-panel rounded-2xl p-3.5 border border-slate-800/80 shadow-xl flex items-center justify-between gap-2 font-mono">
+<button class="flex-1 py-2 px-3 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 hover:bg-red-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+<span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
+              REC LOOP
+            </button>
+<button class="flex-1 py-2 px-3 rounded-xl bg-slate-800/70 border border-slate-700/60 text-slate-200 hover:bg-slate-700/70 text-xs font-medium transition">
+              Overdub
+            </button>
+<button class="py-2 px-3 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-rose-400 text-xs transition">
+              Clear
+            </button>
+</div>
+</aside>
+<!-- END: Right Sidebar Rack -->
+</div>
+</main>
+<!-- END: MixPadContentArea -->
+<!-- BEGIN: TransportPlayerDock -->
+<section class="glass-panel rounded-2xl px-6 py-4 border border-slate-800/80 shadow-2xl flex flex-col gap-3 relative overflow-hidden" data-purpose="audio-player-dock">
+<!-- Glow underline -->
+<div class="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"></div>
+<div class="flex flex-col md:flex-row items-center justify-between gap-4">
+<!-- Track Metadata & Stem Artwork -->
+<div class="flex items-center gap-3.5 w-full md:w-auto">
+<!-- Album Thumbnail -->
+<div class="w-12 h-12 rounded-xl bg-slate-900 border border-cyan-400/30 flex items-center justify-center shadow-md relative overflow-hidden shrink-0">
+<div class="absolute inset-0 bg-gradient-to-tr from-cyan-600/30 via-pink-600/20 to-purple-600/30"></div>
+<svg class="w-6 h-6 text-cyan-300 relative z-10" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="text-sm font-bold text-slate-100">Cyber Odyssey (AI Stem Master)</span>
+<span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 font-semibold">96kHz</span>
+</div>
+<div class="text-xs font-mono text-slate-400 flex items-center gap-2 mt-0.5">
+<span>Kavinsky</span>
+<span class="text-slate-600">•</span>
+<span>Neural Remix Deck A</span>
+<span class="text-slate-600">•</span>
+<span class="text-cyan-400">Key: F# Minor</span>
+<span class="text-slate-600">•</span>
+<span class="text-pink-400">128 BPM</span>
+</div>
+</div>
+</div>
+<!-- Center Player Transport Controls -->
+<div class="flex items-center gap-4">
+<!-- Previous Track -->
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition">
+<svg class="w-4 h-4" fill="currentColor" viewbox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"></path></svg>
+</button>
+<!-- Rewind 20s -->
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-300 transition text-xs font-mono">
+<span>↺20</span>
+</button>
+<!-- Central Glowing Play/Pause Button -->
+<button class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-400 to-pink-500 p-0.5 shadow-glow-cyan hover:scale-105 transition-transform flex items-center justify-center">
+<div class="w-full h-full rounded-full bg-slate-950 flex items-center justify-center">
+<!-- Pause Icon (playing state) -->
+<div class="flex items-center gap-1">
+<div class="w-1.5 h-4 bg-cyan-300 rounded-xs"></div>
+<div class="w-1.5 h-4 bg-cyan-300 rounded-xs"></div>
+</div>
+</div>
+</button>
+<!-- Forward 20s -->
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-300 transition text-xs font-mono">
+<span>20↻</span>
+</button>
+<!-- Next Track -->
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition">
+<svg class="w-4 h-4" fill="currentColor" viewbox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path></svg>
+</button>
+</div>
+<!-- Master Output Slider -->
+<div class="flex items-center gap-3 font-mono text-xs text-slate-400 w-full md:w-56 justify-end">
+<svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Master</span>
+<div class="w-24 h-1.5 bg-slate-800 rounded-full relative overflow-hidden">
+<div class="bg-gradient-to-r from-cyan-400 to-pink-500 h-full w-[82%] rounded-full shadow-[0_0_8px_#00f2fe]"></div>
+</div>
+</div>
+</div>
+<!-- Scrubber Bar (02:44 / 04:12) -->
+<div class="flex items-center gap-3 font-mono text-[11px] text-slate-400 pt-1">
+<span class="text-cyan-400 font-bold">02:44</span>
+<div class="flex-1 h-1.5 bg-slate-900 rounded-full relative cursor-pointer overflow-hidden border border-slate-800">
+<div class="h-full bg-gradient-to-r from-cyan-400 via-pink-500 to-purple-500 w-[65%] rounded-full relative">
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full shadow-[0_0_8px_#fff]"></div>
+</div>
+</div>
+<span class="text-slate-500">04:12</span>
+</div>
+</section>
+<!-- END: TransportPlayerDock -->
+<!-- BEGIN: BottomNavigationDock -->
+<nav class="glass-panel rounded-2xl p-2 border border-slate-800/80 shadow-2xl grid grid-cols-2 md:grid-cols-4 gap-2" data-purpose="application-navigation-dock">
+<!-- Tab 1: Now Playing -->
+<button class="flex flex-col items-center justify-center py-2.5 px-3 rounded-xl border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 transition">
+<div class="flex items-center gap-2">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="9" stroke-width="2"></circle>
+<circle cx="12" cy="12" r="3" stroke-width="2"></circle>
+</svg>
+<span class="text-xs font-bold uppercase tracking-wider">Now Playing</span>
+</div>
+<span class="text-[10px] font-mono text-slate-500 mt-0.5">Deck A • Cyber Odyssey</span>
+</button>
+<!-- Tab 2: MIX PAD (ACTIVE TAB) -->
+<button class="relative flex flex-col items-center justify-center py-2.5 px-3 rounded-xl border border-cyan-400/50 bg-gradient-to-b from-cyan-950/40 via-slate-900/80 to-slate-950 text-cyan-300 shadow-glow-active-tab transition-all">
+<!-- Active bottom neon bar -->
+<div class="absolute -bottom-0.5 w-12 h-1 rounded-full bg-gradient-to-r from-cyan-400 to-pink-500 shadow-[0_0_10px_#00f2fe]"></div>
+<div class="flex items-center gap-2">
+<svg class="w-4 h-4 text-cyan-300" fill="currentColor" viewbox="0 0 24 24">
+<path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zm-9 9h7v7H4v-7zm9 0h7v7h-7v-7z"></path>
+</svg>
+<span class="text-xs font-black uppercase tracking-wider text-white">Mix Pad</span>
+</div>
+<span class="text-[10px] font-mono text-cyan-300 font-semibold mt-0.5 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+          Channel Strips • FX Inserts
+        </span>
+</button>
+<!-- Tab 3: Dolby Atmos -->
+<button class="flex flex-col items-center justify-center py-2.5 px-3 rounded-xl border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 transition">
+<div class="flex items-center gap-2">
+<svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="text-xs font-bold uppercase tracking-wider">Dolby Atmos</span>
+</div>
+<span class="text-[10px] font-mono text-slate-500 mt-0.5">3D Spatial Matrix (Active)</span>
+</button>
+<!-- Tab 4: Master Mix & Config -->
+<button class="flex flex-col items-center justify-center py-2.5 px-3 rounded-xl border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 transition">
+<div class="flex items-center gap-2">
+<svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="text-xs font-bold uppercase tracking-wider">Master Mix &amp; Config</span>
+</div>
+<span class="text-[10px] font-mono text-slate-500 mt-0.5">EQ • Limiter • AI DSP</span>
+</button>
+</nav>
+<!-- END: BottomNavigationDock -->
+</div>
+<!-- Interactive Scripts for Real-time Channel Strip Controls -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. Interactive Solo Toggle Button
+    document.querySelectorAll('.solo-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isSolo = btn.getAttribute('data-solo') === 'true';
+        const nextSolo = !isSolo;
+        btn.setAttribute('data-solo', nextSolo ? 'true' : 'false');
+
+        const indicator = btn.querySelector('.solo-indicator');
+        const text = btn.querySelector('.solo-text');
+        const strip = btn.closest('.track-strip');
+
+        if (nextSolo) {
+          // Solo Active: Amber/Yellow glow
+          btn.className = 'solo-toggle-btn flex items-center gap-1 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/80 shadow-glow-amber text-amber-300 transition shadow-inner group';
+          indicator.className = 'solo-indicator w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b] animate-ping transition-all';
+          text.className = 'solo-text font-black text-amber-200';
+          text.textContent = 'SOLO';
+          if (strip) {
+            strip.classList.add('shadow-[0_0_20px_rgba(245,158,11,0.25)]');
+          }
+        } else {
+          // Solo Inactive: Dark glass button
+          btn.className = 'solo-toggle-btn flex items-center gap-1 font-mono text-[11px] px-2.5 py-1 rounded-lg bg-black/60 border border-slate-700/80 hover:border-amber-400/60 text-slate-400 hover:text-amber-300 transition shadow-inner group';
+          indicator.className = 'solo-indicator w-2 h-2 rounded-full bg-slate-600 transition-all';
+          text.className = 'solo-text font-bold';
+          text.textContent = 'S';
+          if (strip) {
+            strip.classList.remove('shadow-[0_0_20px_rgba(245,158,11,0.25)]');
+          }
+        }
+      });
+    });
+
+    // 2. Interactive Mute Toggle: Red (Muted) vs Green (Unmuted)
+    document.querySelectorAll('.mute-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isMuted = btn.getAttribute('data-muted') === 'true';
+        const nextMuted = !isMuted;
+        btn.setAttribute('data-muted', nextMuted ? 'true' : 'false');
+
+        const dot = btn.querySelector('.indicator-dot');
+        const text = btn.querySelector('.mute-text');
+
+        if (nextMuted) {
+          // Mute ON: Glowing Red
+          dot.className = 'indicator-dot w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_#ef4444] transition-all';
+          text.className = 'mute-text font-bold text-rose-300';
+          text.textContent = 'MUTED';
+          btn.classList.add('bg-rose-950/40', 'border-rose-500/60', 'shadow-[0_0_12px_rgba(239,68,68,0.3)]');
+          btn.classList.remove('bg-black/60', 'border-slate-700/80');
+        } else {
+          // Mute OFF: Green indicator
+          dot.className = 'indicator-dot w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] transition-all';
+          text.className = 'mute-text font-bold text-slate-300';
+          text.textContent = 'MUTE';
+          btn.classList.remove('bg-rose-950/40', 'border-rose-500/60', 'shadow-[0_0_12px_rgba(239,68,68,0.3)]');
+          btn.classList.add('bg-black/60', 'border-slate-700/80');
+        }
+      });
+    });
+
+    // 3. Visual Horizontal Slider Panner Interactive Logic
+    document.querySelectorAll('.pan-slider').forEach(slider => {
+      const updatePanDisplay = () => {
+        const val = parseInt(slider.value, 10);
+        const container = slider.closest('.pan-slider-container');
+        const display = container.querySelector('.pan-display-val');
+        if (!display) return;
+
+        if (val === 0) {
+          display.textContent = 'C';
+        } else if (val < 0) {
+          display.textContent = `L${Math.abs(val)}`;
+        } else {
+          display.textContent = `R${val}`;
+        }
+      };
+
+      slider.addEventListener('input', updatePanDisplay);
+      slider.addEventListener('change', updatePanDisplay);
+    });
+
+    // 4. Precision Rotary Knob Dial (Drag up/down) & Direct dB Text Input Sync
+    function syncKnobAndInput(container, gainVal) {
+      const min = -12;
+      const max = 12;
+      const clamped = Math.max(min, Math.min(max, gainVal));
+
+      const dial = container.querySelector('.rotary-dial');
+      const input = container.querySelector('.gain-direct-input');
+      const pointer = container.querySelector('.knob-pointer');
+      const arc = container.querySelector('.knob-arc-active');
+
+      dial.setAttribute('data-gain', clamped.toFixed(1));
+
+      // Calculate rotation: -135deg at min (-12dB) to +135deg at max (+12dB)
+      const ratio = (clamped - min) / (max - min); // 0.0 to 1.0
+      const deg = (ratio * 270) - 135;
+      if (pointer) {
+        pointer.style.transform = `rotate(${deg}deg) translateY(-3px)`;
+      }
+
+      // Calculate SVG stroke dasharray representation (approx 0 to 72 length)
+      const strokeLen = Math.round(ratio * 70);
+      if (arc) {
+        arc.setAttribute('stroke-dasharray', `${strokeLen}, 100`);
+      }
+
+      if (input && document.activeElement !== input) {
+        input.value = (clamped > 0 ? '+' : '') + clamped.toFixed(1) + ' dB';
+      }
+    }
+
+    // Direct text input listener with typing and blur formatting
+    document.querySelectorAll('.gain-direct-input').forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          input.blur();
+        }
+      });
+
+      input.addEventListener('change', (e) => {
+        const parsed = parseFloat(e.target.value.replace(/[^0-9.-]/g, ''));
+        const val = isNaN(parsed) ? 0.0 : parsed;
+        const container = input.closest('.gain-rotary-container');
+        syncKnobAndInput(container, val);
+      });
+
+      input.addEventListener('focus', (e) => {
+        // Strip dB for easier direct editing
+        e.target.value = e.target.value.replace(' dB', '').trim();
+      });
+
+      input.addEventListener('blur', (e) => {
+        const parsed = parseFloat(e.target.value);
+        const val = isNaN(parsed) ? 0.0 : parsed;
+        const container = input.closest('.gain-rotary-container');
+        syncKnobAndInput(container, val);
+      });
+    });
+
+    // Rotary Dial Drag Interaction (Click and Drag Up/Down)
+    document.querySelectorAll('.rotary-dial').forEach(dial => {
+      let isDragging = false;
+      let startY = 0;
+      let initialGain = 0;
+
+      dial.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startY = e.clientY;
+        initialGain = parseFloat(dial.getAttribute('data-gain')) || 0;
+        document.body.style.cursor = 'ns-resize';
+        e.preventDefault();
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const deltaY = startY - e.clientY; // positive = dragging up
+        const step = 0.15; // sensitivity
+        const newGain = initialGain + (deltaY * step);
+        const container = dial.closest('.gain-rotary-container');
+        syncKnobAndInput(container, newGain);
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          document.body.style.cursor = '';
+        }
+      });
+    });
+
+    // 5. Interactive Module Buttons (EQ/PEQ, Comp/Gate, FX)
+    document.querySelectorAll('.module-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isActive = btn.getAttribute('data-active') === 'true';
+        const nextActive = !isActive;
+        btn.setAttribute('data-active', nextActive ? 'true' : 'false');
+
+        const dot = btn.querySelector('.mod-dot');
+        const label = btn.querySelector('.font-bold');
+        const valBadge = btn.querySelector('.mod-val');
+
+        if (nextActive) {
+          // Active: Blinking Green dot
+          if (dot) dot.className = 'mod-dot w-2 h-2 rounded-full bg-emerald-400 animate-blink-green';
+          if (label) {
+            label.classList.remove('text-slate-400');
+            label.classList.add('text-slate-200');
+          }
+          if (valBadge) {
+            valBadge.classList.remove('text-slate-500');
+            valBadge.classList.add('text-cyan-300');
+            if (valBadge.textContent === 'Off' || valBadge.textContent === 'Bypass') {
+              valBadge.textContent = 'Active';
+            }
+          }
+        } else {
+          // Inactive: Steady Red dot
+          if (dot) dot.className = 'mod-dot w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_3px_#ef4444]';
+          if (label) {
+            label.classList.remove('text-slate-200');
+            label.classList.add('text-slate-400');
+          }
+          if (valBadge) {
+            valBadge.classList.remove('text-cyan-300', 'text-pink-300', 'text-blue-300', 'text-purple-300', 'text-amber-300', 'text-lime-300');
+            valBadge.classList.add('text-slate-500');
+            valBadge.textContent = 'Bypass';
+          }
+        }
+      });
+    });
+  });
+</script>
+</body></html>
